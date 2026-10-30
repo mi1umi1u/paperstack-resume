@@ -102,6 +102,7 @@ export function buildDoc(r: Resume): string {
 
   let html = `<div class="doc doc-${r.meta.template}">`
   html += `<div class="doc-head" data-region="basics">`
+  if (!b.name && !b.label && !parts.length) html += `<p class="placeholder">点击填写姓名与联系方式</p>`
   if (b.name) html += `<h1 class="name">${esc(b.name)}</h1>`
   if (b.label) html += `<p class="label">${esc(b.label)}</p>`
   if (parts.length) html += `<p class="contact">${parts.join('')}</p>`

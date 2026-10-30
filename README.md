@@ -29,7 +29,7 @@ pnpm install
 pnpm dev        # 开发服务器
 pnpm build      # 产出 dist/index.html，并复制为根目录 纸栈.html
 pnpm test       # 单元测试：54 条
-pnpm test:e2e   # 端到端测试：72 条，自动先构建
+pnpm test:e2e   # 端到端测试：73 条，自动先构建
 ```
 
 没有 pnpm 时，可使用 `npm run dev`、`npm run build`、`npm test`、`npm run test:e2e`。
@@ -69,7 +69,7 @@ src/
 | R20 可解释智能分页 | ✅ 分页报告 + 页数目标 + 下限 |
 | R21 命名快照 | ✅ 创建、持久化、比较、恢复为新副本 |
 | R22–R24 AI 审阅、JD 覆盖与脱敏 | ⏳ 未开始 |
-| R15 自动化测试 | ✅ 54 条单元测试 + 72 条端到端测试 |
+| R15 自动化测试 | ✅ 54 条单元测试 + 73 条端到端测试 |
 
 ## 后续顺序
 
