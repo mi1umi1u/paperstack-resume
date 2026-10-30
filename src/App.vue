@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onMounted, reactive, ref, watch, nextTick, computed } from 'vue'
-import { sampleResume, uid, ACCENTS, type Resume, type TemplateId, type FontId, type DensityId, type CustomType } from './core/model'
+import { sampleResume, blankResume, uid, ACCENTS, type Resume, type TemplateId, type FontId, type DensityId, type CustomType } from './core/model'
 import { normalize } from './core/store'
 import { createHistory } from './core/history'
 import {
@@ -16,6 +16,7 @@ import { hitTest, findAnchor, type Target } from './inline/target'
 import { formHTML } from './inline/inplace'
 import ImportDialog from './components/ImportDialog.vue'
 import AuditDialog from './components/AuditDialog.vue'
+import StartScreen from './components/StartScreen.vue'
 
 const resume = reactive<Resume>(sampleResume())
 const wrap = ref<HTMLElement | null>(null)
@@ -23,6 +24,7 @@ const pages = ref(1)
 const zoom = ref(0.82)
 const importing = ref(false)
 const auditing = ref(false)
+const showStart = ref(false)
 const jsonInput = ref<HTMLInputElement | null>(null)
 const editTarget = ref<Target | null>(null)
 const showAddMenu = ref(false)
@@ -490,10 +492,10 @@ onMounted(async () => {
   // 存储读取放后台：IndexedDB 在某些 file:// 环境下会挂起，不能挡住首屏
   loadLibrary()
     .then(lib => {
-      const l = lib || createLibrary(JSON.parse(JSON.stringify(resume)), '我的简历')
-      library.value = l
-      currentId.value = l.currentId
-      const v = currentVersion(l)
+      if (!lib) { showStart.value = true; return }
+      library.value = lib
+      currentId.value = lib.currentId
+      const v = currentVersion(lib)
       if (v) {
         applying = true
         Object.assign(resume, normalize(v.resume))
@@ -505,7 +507,7 @@ onMounted(async () => {
         })
       }
     })
-    .catch(() => undefined)
+    .catch(() => { showStart.value = true })
 })
 
 function persist() {
@@ -556,6 +558,25 @@ async function importJSON(e: Event) {
   el.value = ''
 }
 
+function startBlank() {
+  const blank = blankResume()
+  const base = library.value
+  library.value = base
+    ? addVersion(base, `版本 ${base.versions.length + 1}`, blank)
+    : createLibrary(blank, '我的简历')
+  currentId.value = library.value.currentId
+  saveLibrary(library.value)
+  applying = true
+  Object.assign(resume, blank)
+  showStart.value = false
+  nextTick(() => {
+    applying = false
+    doRender()
+    hist().reset(snapshot())
+    histVer.value++
+  })
+}
+
 function applyImport(r: Resume) {
   // 导入永远新建版本，不覆盖已有内容
   const name = `导入 ${new Date().toLocaleDateString('zh-CN')}`
@@ -566,6 +587,7 @@ function applyImport(r: Resume) {
   applying = true
   Object.assign(resume, normalize(r))
   importing.value = false
+  showStart.value = false
   nextTick(() => {
     applying = false
     doRender()
@@ -597,6 +619,7 @@ function newVersion() {
   library.value = addVersion(base, name, JSON.parse(JSON.stringify(resume)))
   currentId.value = library.value.currentId
   saveLibrary(library.value)
+  showStart.value = false
   histVer.value++
 }
 
@@ -624,6 +647,8 @@ function deleteCurrent() {
 </script>
 
 <template>
+  <StartScreen v-if="showStart" :can-copy="versions.length > 0" @import="importing = true" @blank="startBlank" @copy="newVersion" />
+  <template v-else>
   <header class="topbar">
     <div class="brand">
       <span class="logo">纸栈</span>
@@ -637,7 +662,7 @@ function deleteCurrent() {
       <select v-model="currentId" class="ver-select" title="切换版本" @change="switchVersion">
         <option v-for="v in versions" :key="v.id" :value="v.id">{{ v.name }}</option>
       </select>
-      <button class="btn" title="新建版本（复制当前）" @click="newVersion">＋</button>
+      <button class="btn" title="新建简历" @click="showStart = true">＋</button>
       <button class="btn" title="重命名当前版本" @click="renameCurrent">✎</button>
       <button class="btn" title="删除当前版本" @click="deleteCurrent">✕</button>
     </div>
@@ -691,6 +716,7 @@ function deleteCurrent() {
       <div ref="wrap" class="sheet-wrap" @click="onWrapClick" @input="onWrapInput" />
     </section>
   </main>
+  </template>
 
   <div v-if="showAddMenu" class="add-menu-mask" @click.self="showAddMenu = false">
     <div class="add-menu">
