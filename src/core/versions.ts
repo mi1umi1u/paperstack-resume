@@ -1,4 +1,4 @@
-import { get, set } from 'idb-keyval'
+import { get, set, del } from 'idb-keyval'
 import type { Resume } from './model'
 import { normalize } from './store'
 
@@ -148,6 +148,13 @@ export async function loadLibrary(): Promise<Library | null> {
   const old = await loadResume()
   if (old) return createLibrary(old, '我的简历')
   return null
+}
+
+/** 清空全部版本、快照与旧版单份简历数据，回到首次使用状态 */
+export async function clearLibraryData(): Promise<void> {
+  await del(LIB_KEY).catch(() => undefined)
+  await del('paperstack.resume.v2').catch(() => undefined)
+  try { localStorage.removeItem('paperstack.resume.v1') } catch { /* ignore */ }
 }
 
 export function saveLibrary(lib: Library, delay = 300): void {

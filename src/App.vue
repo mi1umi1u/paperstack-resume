@@ -6,6 +6,7 @@ import { createHistory } from './core/history'
 import {
   createLibrary, currentVersion, addVersion, updateVersion, addSnapshot,
   renameVersion as renameVersionIn, removeVersion, saveLibrary, loadLibrary,
+  clearLibraryData,
   type Library
 } from './core/versions'
 import { buildDoc, toJSONResume } from './render/doc'
@@ -677,6 +678,18 @@ function renameCurrent() {
   saveLibrary(library.value)
 }
 
+async function clearAllData() {
+  if (!confirm('确定清空所有简历和快照？此操作不可恢复')) return
+  if (!confirm('再次确认：真的要清空全部数据吗？')) return
+  await clearLibraryData()
+  library.value = null
+  currentId.value = ''
+  snapshotOpen.value = false
+  showStart.value = true
+  Object.assign(resume, blankResume())
+  nextTick(doRender)
+}
+
 function deleteCurrent() {
   const lib = library.value
   if (!lib || lib.versions.length <= 1) return alert('至少要保留一个版本')
@@ -714,6 +727,7 @@ function deleteCurrent() {
       <button class="btn" title="重命名当前版本" @click="renameCurrent">✎</button>
       <button class="btn" title="删除当前版本" @click="deleteCurrent">✕</button>
       <button class="btn" title="快照" @click="snapshotOpen = true">快照</button>
+      <button class="btn" title="清空全部数据" @click="clearAllData">清空数据</button>
     </div>
     <div class="spacer" />
     <div class="acts">
