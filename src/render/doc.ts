@@ -93,11 +93,6 @@ function sectionHtml(r: Resume, key: string): string {
 export function buildDoc(r: Resume): string {
   const b = r.basics
   const custom = (b.custom || []).filter(c => c.label || c.value)
-  const hasAny = b.name || r.work.length || r.projects.length || custom.length
-
-  if (!hasAny) {
-    return `<div class="doc doc-${r.meta.template}"><div class="empty-doc"><strong>还没有内容</strong>左边填两行，右边就是成品。<br>不确定怎么写，先点右上角「示例」。</div></div>`
-  }
 
   const parts = [b.phone, b.email, b.city].filter(Boolean).map(x => `<span>${esc(x)}</span>`)
   custom.forEach(c => {

@@ -179,8 +179,11 @@ Windows / Linux、TCP/IP、VLAN
 })
 
 describe('buildDoc 渲染', () => {
-  it('空简历给引导文案', () => {
-    expect(buildDoc(blankResume())).toContain('还没有内容')
+  it('空简历渲染内置模块占位，可点击添加第一条', () => {
+    const html = buildDoc(blankResume())
+    expect(html).toContain('data-key="work"')
+    expect(html).toContain('点击填写')
+    expect(html).not.toContain('还没有内容')
   })
 
   it('清空标题后不渲染标题，但内容还在', () => {
