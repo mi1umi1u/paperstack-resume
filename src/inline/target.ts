@@ -23,8 +23,9 @@ export function hitTest(el: Element | null, sectionType: (key: string) => string
   const li = el.closest('li[data-bi]')
   const item = el.closest('[data-id]')
   const section = el.closest('[data-key]')
+  const splitTail = li && (li as HTMLElement).dataset.split === '1'
 
-  if (li && item && section) {
+  if (li && item && section && !splitTail) {
     return {
       kind: 'bullet',
       key: (section as HTMLElement).dataset.key!,

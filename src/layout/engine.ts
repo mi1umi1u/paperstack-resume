@@ -344,9 +344,16 @@ export function layout(docHtml: string, host: HTMLElement, opts: LayoutOpts): La
       if (sp) {
         const tailLi = document.createElement('li')
         tailLi.textContent = sp.tail
+        tailLi.dataset.split = '1'
+        if ((u.node as HTMLElement).dataset.bi !== undefined) {
+          tailLi.dataset.bi = (u.node as HTMLElement).dataset.bi
+        }
         ;(u.node as HTMLElement).textContent = sp.head
         renderPage(cur, docClass)
-        queue.unshift({ kind: 'bullet', secId: u.secId, g: u.g, node: tailLi, keep: false, pb: false })
+        queue.unshift({
+          kind: 'bullet', secId: u.secId, g: u.g, node: tailLi,
+          keep: false, pb: false, flat: u.flat, dataKey: u.dataKey, itemId: u.itemId
+        })
         continue
       }
     }
