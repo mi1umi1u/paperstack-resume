@@ -4,7 +4,7 @@ import { sampleResume, blankResume, uid, type Resume, type TemplateId, type Font
 import { normalize } from './core/store'
 import { createHistory } from './core/history'
 import {
-  createLibrary, currentVersion, addVersion, updateVersion,
+  createLibrary, currentVersion, addVersion, updateVersion, addSnapshot,
   renameVersion as renameVersionIn, removeVersion, saveLibrary, loadLibrary,
   type Library
 } from './core/versions'
@@ -17,6 +17,7 @@ import { formHTML } from './inline/inplace'
 import ImportDialog from './components/ImportDialog.vue'
 import StartScreen from './components/StartScreen.vue'
 import AuditPanel from './components/AuditPanel.vue'
+import SnapshotDialog from './components/SnapshotDialog.vue'
 import DesignPanel from './components/DesignPanel.vue'
 
 const resume = reactive<Resume>(sampleResume())
@@ -26,6 +27,7 @@ const zoom = ref(0.82)
 const importing = ref(false)
 const showStart = ref(false)
 const mode = ref<'edit' | 'design' | 'audit'>('edit')
+const snapshotOpen = ref(false)
 const jsonInput = ref<HTMLInputElement | null>(null)
 const editTarget = ref<Target | null>(null)
 const showAddMenu = ref(false)
@@ -38,6 +40,7 @@ const compressed = ref(false)
 const library = ref<Library | null>(null)
 const currentId = ref('')
 const versions = computed(() => library.value?.versions ?? [])
+const snapshots = computed(() => currentVersion(library.value as any)?.snapshots ?? [])
 const histories = new Map<string, ReturnType<typeof createHistory>>()
 const histVer = ref(0)          // 变化时刷新按钮可用状态
 let applying = false            // 撤销/重做期间不回写历史
@@ -576,6 +579,33 @@ function startBlank() {
   })
 }
 
+function restoreSnapshot(id: string) {
+  const lib = library.value
+  if (!lib || !currentId.value) return
+  const v = currentVersion(lib)
+  const s = v?.snapshots.find(x => x.id === id)
+  if (!s) return
+  library.value = addVersion(lib, `恢复「${s.name}」`, JSON.parse(JSON.stringify(s.resume)))
+  currentId.value = library.value.currentId
+  saveLibrary(library.value)
+  snapshotOpen.value = false
+  applying = true
+  Object.assign(resume, normalize(s.resume))
+  nextTick(() => {
+    applying = false
+    doRender()
+    hist().reset(snapshot())
+    histVer.value++
+  })
+}
+
+function saveSnapshot(name: string) {
+  const lib = library.value
+  if (!lib || !currentId.value) return
+  library.value = addSnapshot(lib, currentId.value, name, JSON.parse(JSON.stringify(resume)))
+  saveLibrary(library.value)
+}
+
 function applyImport(r: Resume) {
   // 导入永远新建版本，不覆盖已有内容
   const name = `导入 ${new Date().toLocaleDateString('zh-CN')}`
@@ -683,6 +713,7 @@ function deleteCurrent() {
       <button class="btn" title="新建简历" @click="showStart = true">＋</button>
       <button class="btn" title="重命名当前版本" @click="renameCurrent">✎</button>
       <button class="btn" title="删除当前版本" @click="deleteCurrent">✕</button>
+      <button class="btn" title="快照" @click="snapshotOpen = true">快照</button>
     </div>
     <div class="spacer" />
     <div class="acts">
@@ -727,5 +758,6 @@ function deleteCurrent() {
   </div>
 
   <ImportDialog v-if="importing" @close="importing = false" @apply="applyImport" />
+  <SnapshotDialog v-if="snapshotOpen" :snapshots="snapshots" :resume="resume" @close="snapshotOpen = false" @save="saveSnapshot" @restore="restoreSnapshot" />
   <input ref="jsonInput" type="file" accept=".json,application/json" hidden @change="importJSON" />
 </template>
