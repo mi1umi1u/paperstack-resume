@@ -15,7 +15,8 @@ test('设计模式保留预览，可修改模板并切回编辑模式', async ({
   await expect(page.locator('.design-panel')).toBeVisible()
   await expect(page.locator('.outline')).toBeHidden()
   await expect(page.locator('.stage')).toBeVisible()
-  await page.locator('.design-panel .chip', { hasText: '密' }).click()
+  await page.locator('.tpl-card', { hasText: '密' }).click()
+  await page.getByRole('button', { name: '应用此模板' }).click()
   expect(await page.evaluate(() => (window as any).__ps.resume().meta.template)).toBe('mi')
 
   await edit.click()
