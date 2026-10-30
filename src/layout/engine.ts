@@ -4,12 +4,15 @@
  */
 import type { DensityId, FontId, TemplateId } from '../core/model'
 
+export type PageTarget = 'auto' | '1' | '2' | '3'
+
 export interface LayoutOpts {
   template: TemplateId
   font: FontId
   accent: string
   density: DensityId
   autoFit: boolean
+  targetPages?: PageTarget
 }
 
 interface Comp { gap: number; padY: number; padX: number; lh: number; fs: number }
@@ -288,112 +291,146 @@ function stretch(sheet: HTMLElement, left: number) {
   }
 }
 
-export interface LayoutResult { pages: number; compressed: boolean }
+export interface FitReport {
+  pages: number
+  compressed: boolean
+  fontSize: number
+  lineHeight: number
+  minFontSize: number
+  minLineHeight: number
+}
+
+export interface LayoutResult { pages: number; compressed: boolean; report: FitReport }
 
 export function layout(docHtml: string, host: HTMLElement, opts: LayoutOpts): LayoutResult {
-  const comp = decide(docHtml, opts)
+  const target: PageTarget = opts.targetPages ?? 'auto'
 
-  // 抽取单元
-  const temp = mkSheet(comp, opts)
-  temp.innerHTML = docHtml
-  const src = temp.firstElementChild as Element | null
-  const docClass = src ? src.className : `doc doc-${opts.template}`
-  const units = src ? extractUnits(src) : []
-  temp.remove()
+  function paginate(comp: Comp): PageBox[] {
+    const temp = mkSheet(comp, opts)
+    temp.innerHTML = docHtml
+    const src = temp.firstElementChild as Element | null
+    const docClass = src ? src.className : `doc doc-${opts.template}`
+    const units = src ? extractUnits(src) : []
+    temp.remove()
 
-  const pages: PageBox[] = []
-  let cur: PageBox
+    const pages: PageBox[] = []
+    let cur: PageBox
 
-  const newPage = () => {
-    const el = mkSheet(comp, opts)
-    const pg: PageBox = { el, units: [] }
-    pages.push(pg)
-    cur = pg
-    renderPage(cur, docClass)
-    return pg
-  }
-  const area = () => contentArea(cur.el)
-  const over = () => cur.el.scrollHeight > cur.el.clientHeight + 1
-
-  const popDangling = () => {
-    const out: Unit[] = []
-    while (cur.units.length) {
-      const last = cur.units[cur.units.length - 1]
-      if (last.kind === 'title' || last.kind === 'head') { out.unshift(cur.units.pop() as Unit); continue }
-      break
-    }
-    return out
-  }
-
-  newPage()
-  const queue: Unit[] = units.slice()
-  let guard = 0
-
-  while (queue.length && guard++ < 4000) {
-    const u = queue.shift() as Unit
-
-    if (u.pb && cur.units.length) newPage()
-
-    cur.units.push(u)
-    renderPage(cur, docClass)
-    if (!over()) continue
-
-    // ① 长段落断行
-    if (u.kind === 'bullet') {
-      const sp = splitBullet(cur, u, area())
-      if (sp) {
-        const tailLi = document.createElement('li')
-        tailLi.textContent = sp.tail
-        tailLi.dataset.split = '1'
-        if ((u.node as HTMLElement).dataset.bi !== undefined) {
-          tailLi.dataset.bi = (u.node as HTMLElement).dataset.bi
-        }
-        ;(u.node as HTMLElement).textContent = sp.head
-        renderPage(cur, docClass)
-        queue.unshift({
-          kind: 'bullet', secId: u.secId, g: u.g, node: tailLi,
-          keep: false, pb: false, flat: u.flat, dataKey: u.dataKey, itemId: u.itemId
-        })
-        continue
-      }
-    }
-
-    // ② 整条挪走；整段不拆时同组一起走
-    let carry: Unit[] = [u]
-    if (u.kind !== 'block' && u.keep && (u as any).g) {
-      const g = (u as any).g as string
-      const idx = cur.units.findIndex(x => (x as any).g === g)
-      if (idx >= 0) carry = cur.units.splice(idx)
-      else cur.units.pop()
-    } else {
-      cur.units.pop()
-    }
-
-    // ③ 页尾不能只剩标题或公司名
-    carry = popDangling().concat(carry)
-    renderPage(cur, docClass)
-
-    if (cur.units.length === 0) {        // 本页已空，直接放回（单条超页时允许溢出）
-      cur.units.push(...carry)
+    const newPage = () => {
+      const el = mkSheet(comp, opts)
+      const pg: PageBox = { el, units: [] }
+      pages.push(pg)
+      cur = pg
       renderPage(cur, docClass)
-      continue
+      return pg
+    }
+    const area = () => contentArea(cur.el)
+    const over = () => cur.el.scrollHeight > cur.el.clientHeight + 1
+
+    const popDangling = () => {
+      const out: Unit[] = []
+      while (cur.units.length) {
+        const last = cur.units[cur.units.length - 1]
+        if (last.kind === 'title' || last.kind === 'head') { out.unshift(cur.units.pop() as Unit); continue }
+        break
+      }
+      return out
     }
 
     newPage()
-    cur.units.push(...carry)
-    renderPage(cur, docClass)
+    const queue: Unit[] = units.slice()
+    let guard = 0
+
+    while (queue.length && guard++ < 4000) {
+      const u = queue.shift() as Unit
+
+      if (u.pb && cur.units.length) newPage()
+
+      cur.units.push(u)
+      renderPage(cur, docClass)
+      if (!over()) continue
+
+      if (u.kind === 'bullet') {
+        const sp = splitBullet(cur, u, area())
+        if (sp) {
+          const tailLi = document.createElement('li')
+          tailLi.textContent = sp.tail
+          tailLi.dataset.split = '1'
+          if ((u.node as HTMLElement).dataset.bi !== undefined) {
+            tailLi.dataset.bi = (u.node as HTMLElement).dataset.bi
+          }
+          ;(u.node as HTMLElement).textContent = sp.head
+          renderPage(cur, docClass)
+          queue.unshift({
+            kind: 'bullet', secId: u.secId, g: u.g, node: tailLi,
+            keep: false, pb: false, flat: u.flat, dataKey: u.dataKey, itemId: u.itemId
+          })
+          continue
+        }
+      }
+
+      let carry: Unit[] = [u]
+      if (u.kind !== 'block' && u.keep && (u as any).g) {
+        const g = (u as any).g as string
+        const idx = cur.units.findIndex(x => (x as any).g === g)
+        if (idx >= 0) carry = cur.units.splice(idx)
+        else cur.units.pop()
+      } else {
+        cur.units.pop()
+      }
+
+      carry = popDangling().concat(carry)
+      renderPage(cur, docClass)
+
+      if (cur.units.length === 0) {
+        cur.units.push(...carry)
+        renderPage(cur, docClass)
+        continue
+      }
+
+      newPage()
+      cur.units.push(...carry)
+      renderPage(cur, docClass)
+    }
+
+    pages.forEach((pg, i) => {
+      if (i === pages.length - 1) return
+      const docEl = pg.el.querySelector('.doc') as HTMLElement | null
+      if (!docEl) return
+      const left = contentArea(pg.el) - docEl.offsetHeight
+      if (left >= 2) stretch(pg.el, left)
+    })
+    return pages
   }
 
-  // 非末页撑开
-  pages.forEach((pg, i) => {
-    if (i === pages.length - 1) return
-    const docEl = pg.el.querySelector('.doc') as HTMLElement | null
-    if (!docEl) return
-    const left = contentArea(pg.el) - docEl.offsetHeight
-    if (left >= 2) stretch(pg.el, left)
-  })
+  let comp: Comp
+  let compressedApplied = false
+  let pages: PageBox[]
 
-  // 输出
+  if (target === 'auto') {
+    comp = decide(docHtml, opts)
+    compressedApplied = comp !== COMP_DEF
+    pages = paginate(comp)
+  } else {
+    const want = Number(target)
+    const steps = ladder()
+    let chosenIndex = 0
+    let chosenPages: PageBox[] | null = null
+    steps.forEach((s, i) => {
+      if (chosenPages) return
+      const trial = paginate(s)
+      if (trial.length <= want) {
+        chosenIndex = i
+        chosenPages = trial
+      } else {
+        trial.forEach(pg => pg.el.remove())
+      }
+    })
+    comp = steps[chosenIndex]
+    compressedApplied = chosenIndex !== 0
+    pages = chosenPages || paginate(comp)
+  }
+
   host.innerHTML = ''
   pages.forEach(pg => {
     pg.el.style.zoom = ''
@@ -401,5 +438,17 @@ export function layout(docHtml: string, host: HTMLElement, opts: LayoutOpts): La
     host.appendChild(pg.el)
   })
 
-  return { pages: pages.length, compressed: comp !== COMP_DEF }
+  const firstDoc = pages[0]?.el.querySelector('.doc') as HTMLElement | null
+  const cs = firstDoc ? getComputedStyle(firstDoc) : null
+  const fontSize = cs ? parseFloat(cs.fontSize) : 14
+  const lineHeight = cs ? parseFloat(cs.lineHeight) / (fontSize || 1) : 1.66
+  const report: FitReport = {
+    pages: pages.length,
+    compressed: compressedApplied,
+    fontSize,
+    lineHeight,
+    minFontSize: 13.5,
+    minLineHeight: 1.41
+  }
+  return { pages: pages.length, compressed: compressedApplied, report }
 }

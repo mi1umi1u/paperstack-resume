@@ -80,6 +80,7 @@ export function normalize(input: any): Resume {
     font: m.font || 'song',
     density: m.density || 'normal',
     autoFit: m.autoFit !== false,
+    targetPages: m.targetPages === '1' || m.targetPages === '2' || m.targetPages === '3' ? m.targetPages : 'auto',
     order,
     titles: { ...DEFAULT_TITLES, ...(m.titles || {}) },
     customSections: base.meta.customSections,

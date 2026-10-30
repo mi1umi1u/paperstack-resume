@@ -67,6 +67,7 @@ export interface CustomSection {
 export type TemplateId = 'su' | 'yin' | 'mi' | 'xian' | 'zhou' | 'zhao' | 'kuai' | 'lan' | 'lanq' | 'en'
 export type FontId = 'song' | 'yahei' | 'hei'
 export type DensityId = 'compact' | 'normal' | 'loose'
+export type PageTarget = 'auto' | '1' | '2' | '3'
 
 export interface Meta {
   template: TemplateId
@@ -74,6 +75,7 @@ export interface Meta {
   font: FontId
   density: DensityId
   autoFit: boolean
+  targetPages: PageTarget
   order: string[]                  // work | projects | skills | education | 自定义模块 id
   titles: Record<string, string>
   customSections: CustomSection[]
@@ -120,6 +122,7 @@ export function blankResume(): Resume {
       font: 'song',
       density: 'normal',
       autoFit: true,
+      targetPages: 'auto',
       order: ['work', 'projects', 'skills', 'education'],
       titles: { ...DEFAULT_TITLES },
       customSections: [],

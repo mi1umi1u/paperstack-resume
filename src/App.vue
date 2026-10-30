@@ -10,7 +10,7 @@ import {
   type Library
 } from './core/versions'
 import { buildDoc, toJSONResume } from './render/doc'
-import { layout } from './layout/engine'
+import { layout, type FitReport } from './layout/engine'
 
 import OutlinePanel from './components/OutlinePanel.vue'
 import { hitTest, findAnchor, type Target } from './inline/target'
@@ -38,6 +38,7 @@ let editingActive = false
 let editingBackup = ''
 const ready = ref(false)
 const compressed = ref(false)
+const fit = ref<FitReport | null>(null)
 const library = ref<Library | null>(null)
 const currentId = ref('')
 const versions = computed(() => library.value?.versions ?? [])
@@ -69,10 +70,12 @@ function doRender() {
     font: resume.meta.font,
     accent: resume.meta.accent,
     density: resume.meta.density,
-    autoFit: resume.meta.autoFit
+    autoFit: resume.meta.autoFit,
+    targetPages: resume.meta.targetPages
   })
   pages.value = res.pages
   compressed.value = res.compressed
+  fit.value = res.report
 }
 
 const snapshot = () => JSON.stringify(resume)
@@ -742,7 +745,7 @@ function deleteCurrent() {
 
   <main class="workspace">
     <OutlinePanel v-if="mode === 'edit'" :resume="resume" @locate="locate" @add="showAddMenu = true" />
-    <DesignPanel v-else-if="mode === 'design'" :resume="resume" />
+    <DesignPanel v-else-if="mode === 'design'" :resume="resume" :fit="fit" />
     <AuditPanel v-else :resume="resume" @locate="onAuditLocate" />
 
     <section class="stage">
