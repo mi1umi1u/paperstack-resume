@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onMounted, reactive, ref, watch, nextTick, computed } from 'vue'
-import { sampleResume, blankResume, uid, ACCENTS, type Resume, type TemplateId, type FontId, type DensityId, type CustomType } from './core/model'
+import { sampleResume, blankResume, uid, type Resume, type TemplateId, type FontId, type DensityId, type CustomType } from './core/model'
 import { normalize } from './core/store'
 import { createHistory } from './core/history'
 import {
@@ -10,21 +10,22 @@ import {
 } from './core/versions'
 import { buildDoc, toJSONResume } from './render/doc'
 import { layout } from './layout/engine'
-import { TEMPLATES } from './templates'
+
 import OutlinePanel from './components/OutlinePanel.vue'
 import { hitTest, findAnchor, type Target } from './inline/target'
 import { formHTML } from './inline/inplace'
 import ImportDialog from './components/ImportDialog.vue'
-import AuditDialog from './components/AuditDialog.vue'
 import StartScreen from './components/StartScreen.vue'
+import AuditPanel from './components/AuditPanel.vue'
+import DesignPanel from './components/DesignPanel.vue'
 
 const resume = reactive<Resume>(sampleResume())
 const wrap = ref<HTMLElement | null>(null)
 const pages = ref(1)
 const zoom = ref(0.82)
 const importing = ref(false)
-const auditing = ref(false)
 const showStart = ref(false)
+const mode = ref<'edit' | 'design' | 'audit'>('edit')
 const jsonInput = ref<HTMLInputElement | null>(null)
 const editTarget = ref<Target | null>(null)
 const showAddMenu = ref(false)
@@ -460,7 +461,7 @@ onMounted(async () => {
   if (dens) resume.meta.density = dens as DensityId
   if (accent) resume.meta.accent = '#' + accent.replace('#', '')
   if (q.get('import')) importing.value = true
-  if (q.get('audit')) auditing.value = true
+  if (q.get('audit')) mode.value = 'audit'
 
   // 测试钩子：仅供 Playwright 使用，?test=1 时才挂载
   if (q.get('test')) {
@@ -527,11 +528,9 @@ watch(() => [resume.meta.template, resume.meta.font, resume.meta.accent, resume.
   if (ready.value) scheduleRender()
 })
 
-const templates = computed(() => TEMPLATES)
 const canUndo = computed(() => histVer.value >= 0 && hist().canUndo())
 const canRedo = computed(() => histVer.value >= 0 && hist().canRedo())
 
-function setTpl(id: TemplateId) { resume.meta.template = id }
 function playSample() { Object.assign(resume, sampleResume()); setTimeout(() => { hist().record(snapshot()); histVer.value++ }, 30) }
 function printDoc() { window.print() }
 
@@ -596,6 +595,20 @@ function applyImport(r: Resume) {
   })
 }
 
+function onAuditLocate(target?: string) {
+  mode.value = 'edit'
+  nextTick(() => {
+    if (target === 'basics') {
+      const el = wrap.value?.querySelector('[data-region="basics"]') as HTMLElement | null
+      el?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      flash(el)
+      openEditorTarget({ kind: 'basics' })
+      return
+    }
+    locate(target || 'work')
+  })
+}
+
 function switchVersion() {
   const lib = library.value
   if (!lib) return
@@ -654,6 +667,11 @@ function deleteCurrent() {
       <span class="logo">纸栈</span>
       <span class="logo-sub">PAPERSTACK</span>
     </div>
+    <div class="mode-switch" aria-label="工作模式">
+      <button :aria-pressed="mode === 'edit'" @click="mode = 'edit'">编辑</button>
+      <button :aria-pressed="mode === 'design'" @click="mode = 'design'">设计</button>
+      <button :aria-pressed="mode === 'audit'" @click="mode = 'audit'">体检</button>
+    </div>
     <div class="acts" style="margin-left:14px">
       <button class="btn" :disabled="!canUndo" title="撤销 Ctrl+Z" @click="undo">↶</button>
       <button class="btn" :disabled="!canRedo" title="重做 Ctrl+Y" @click="redo">↷</button>
@@ -672,44 +690,19 @@ function deleteCurrent() {
       <button class="btn" @click="playSample">示例</button>
       <button class="btn" @click="exportJSON">存 JSON</button>
       <button class="btn" @click="jsonInput?.click()">读 JSON</button>
-      <button class="btn" @click="auditing = true">体检</button>
       <button class="btn" :aria-pressed="resume.meta.autoFit" @click="resume.meta.autoFit = !resume.meta.autoFit">压到一页</button>
       <button class="btn primary" @click="printDoc">导出 PDF</button>
     </div>
   </header>
 
   <main class="workspace">
-    <OutlinePanel :resume="resume" @locate="locate" @add="showAddMenu = true" />
+    <OutlinePanel v-if="mode === 'edit'" :resume="resume" @locate="locate" @add="showAddMenu = true" />
+    <DesignPanel v-else-if="mode === 'design'" :resume="resume" />
+    <AuditPanel v-else :resume="resume" @locate="onAuditLocate" />
 
     <section class="stage">
       <div class="stage-bar">
         <span class="meta">{{ pages }} 页</span>
-        <div class="chip-group">
-          <button v-for="t in templates" :key="t.id" class="chip" :disabled="!t.ready"
-            :title="t.ready ? t.desc : '即将上线'"
-            :aria-pressed="resume.meta.template === t.id"
-            :style="!t.ready ? 'opacity:.35;cursor:not-allowed' : ''"
-            @click="t.ready && setTpl(t.id)">{{ t.name }}</button>
-        </div>
-
-        <div class="chip-group">
-          <button class="chip" :aria-pressed="resume.meta.font === 'song'" @click="resume.meta.font = 'song' as FontId">宋</button>
-          <button class="chip" :aria-pressed="resume.meta.font === 'yahei'" @click="resume.meta.font = 'yahei' as FontId">雅</button>
-          <button class="chip" :aria-pressed="resume.meta.font === 'hei'" @click="resume.meta.font = 'hei' as FontId">黑</button>
-        </div>
-
-        <div class="dots">
-          <button v-for="a in ACCENTS" :key="a.value" class="dotbtn" :style="{ '--c': a.value }"
-            :title="a.name" :aria-pressed="resume.meta.accent === a.value"
-            @click="resume.meta.accent = a.value" />
-        </div>
-
-        <div class="chip-group">
-          <button class="chip" :aria-pressed="resume.meta.density === 'compact'" @click="resume.meta.density = 'compact' as DensityId">紧</button>
-          <button class="chip" :aria-pressed="resume.meta.density === 'normal'" @click="resume.meta.density = 'normal' as DensityId">标</button>
-          <button class="chip" :aria-pressed="resume.meta.density === 'loose'" @click="resume.meta.density = 'loose' as DensityId">松</button>
-        </div>
-
         <span class="meta" style="margin-left:auto">{{ Math.round(zoom * 100) }}%</span>
       </div>
 
@@ -734,6 +727,5 @@ function deleteCurrent() {
   </div>
 
   <ImportDialog v-if="importing" @close="importing = false" @apply="applyImport" />
-  <AuditDialog v-if="auditing" :resume="resume" @close="auditing = false" />
   <input ref="jsonInput" type="file" accept=".json,application/json" hidden @change="importJSON" />
 </template>
