@@ -32,8 +32,11 @@ const metaLabel = (t: TemplateDef) =>
   [t.type === 'double' ? '双栏' : '单栏', t.photo === 'optional' ? '照片可选' : t.photo ? '照片' : '', t.lang === 'en' ? '英文' : '']
     .filter(Boolean).join(' · ')
 
-function apply() {
-  if (selected.value) emit('apply', selected.value)
+function applyPreview() {
+  if (!previewTemplate.value) return
+  selected.value = previewTemplate.value.id
+  emit('apply', previewTemplate.value.id)
+  previewId.value = null
 }
 
 const previewTemplate = computed(() => TEMPLATES.find(t => t.id === previewId.value) || null)
@@ -66,7 +69,6 @@ const previewHtml = computed(() => previewTemplate.value ? thumbFor(previewTempl
 
     <div class="gallery-foot">
       <span class="gallery-hint">使用同一份示例简历渲染，切换不改变你的内容。</span>
-      <button class="btn primary" :disabled="!selected" @click="apply">应用此模板</button>
     </div>
   </div>
 
@@ -87,7 +89,7 @@ const previewHtml = computed(() => previewTemplate.value ? thumbFor(previewTempl
         <div class="gallery-preview-foot">
           <span class="gallery-preview-hint">拖动设计面板右边缘，可以调整模板列表宽度。</span>
           <button class="btn" type="button" @click="previewId = null">返回</button>
-          <button class="btn primary" type="button" @click="selected = previewTemplate.id; previewId = null">选择这套</button>
+          <button class="btn primary" type="button" @click="applyPreview">应用这套模板</button>
         </div>
       </div>
     </div>
@@ -104,7 +106,7 @@ const previewHtml = computed(() => previewTemplate.value ? thumbFor(previewTempl
 .tpl-card{display:flex;gap:10px;padding:10px;border:1px solid var(--line-soft);background:transparent;text-align:left;cursor:pointer;border-radius:4px;align-items:flex-start}
 .tpl-card:hover{border-color:var(--accent)}
 .tpl-card.on{border-color:var(--accent);background:#FFFDF8}
-.tpl-thumb{width:120px;height:150px;overflow:hidden;flex:none;background:#fff;border:1px solid var(--line-soft);display:block}
+.tpl-thumb{width:120px;height:150px;overflow:hidden;flex:none;background:#fff;border:1px solid var(--line-soft);display:block;pointer-events:none}
 .tpl-thumb :deep(.doc){transform:scale(.15);transform-origin:top left;width:794px}
 .tpl-thumb :deep(.doc), .tpl-thumb :deep(.doc-double .doc-side), .tpl-thumb :deep(.doc-double .doc-main){height:1123px}
 .tpl-info{display:flex;flex-direction:column;gap:4px;padding-top:2px;min-width:0}
@@ -128,8 +130,12 @@ const previewHtml = computed(() => previewTemplate.value ? thumbFor(previewTempl
 .gallery-preview-stage{overflow:auto;padding:24px 28px;background:
   linear-gradient(135deg,rgba(255,255,255,.38),transparent 40%),#E9E5DC;display:flex;justify-content:center}
 .gallery-preview-sheet{width:477px;height:674px;flex:none;background:#fff;overflow:hidden;
-  box-shadow:0 18px 40px -22px rgba(0,0,0,.5)}
+  box-shadow:0 18px 40px -22px rgba(0,0,0,.5);pointer-events:none;user-select:none}
 .gallery-preview-sheet :deep(.doc){transform:scale(.6);transform-origin:top left;width:794px;height:1123px;min-height:1123px;padding:56px 60px;background:#fff}
+.gallery-preview-sheet :deep(.doc [data-region]),
+.gallery-preview-sheet :deep(.doc [data-key]),
+.gallery-preview-sheet :deep(.doc [data-id]),
+.gallery-preview-sheet :deep(.doc li[data-bi]){box-shadow:none!important;background:transparent!important;cursor:default!important}
 .gallery-preview-foot{display:flex;align-items:center;justify-content:flex-end;gap:8px;padding:12px 18px 16px;border-top:1px solid var(--line)}
 .gallery-preview-hint{margin-right:auto;font-size:9.5px;color:var(--muted)}
 @media(max-width:620px){

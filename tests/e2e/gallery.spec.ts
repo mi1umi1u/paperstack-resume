@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test'
 import { openApp } from './helpers'
 
-test('模板画廊以统一样例渲染缩略图，选中后应用模板', async ({ page }) => {
+test('模板画廊以统一样例渲染缩略图，预览后直接应用模板', async ({ page }) => {
   await openApp(page)
   await page.getByRole('button', { name: '设计', exact: true }).click()
 
@@ -9,8 +9,10 @@ test('模板画廊以统一样例渲染缩略图，选中后应用模板', async
   await expect(cards).toHaveCount(10)
   await expect(page.locator('.tpl-card .tpl-thumb .doc').first()).toBeVisible()
 
+  await expect(page.getByRole('button', { name: '应用此模板' })).toHaveCount(0)
   await page.locator('.tpl-card', { hasText: '密' }).click()
-  await page.getByRole('button', { name: '应用此模板' }).click()
+  await page.locator('.tpl-card', { hasText: '密' }).getByRole('button', { name: '查看大图' }).click()
+  await page.getByRole('button', { name: '应用这套模板' }).click()
 
   expect(await page.evaluate(() => (window as any).__ps.resume().meta.template)).toBe('mi')
 })
@@ -43,7 +45,6 @@ test('模板可放大预览，再从预览确认选择', async ({ page }) => {
   const viewport = page.viewportSize()!
   expect(cardBox).toBeTruthy()
   expect(Math.abs((cardBox!.x + cardBox!.width / 2) - viewport.width / 2)).toBeLessThan(8)
-  await dialog.getByRole('button', { name: '选择这套' }).click()
-  await page.getByRole('button', { name: '应用此模板' }).click()
+  await dialog.getByRole('button', { name: '应用这套模板' }).click()
   expect(await page.evaluate(() => (window as any).__ps.resume().meta.template)).toBe('zhou')
 })

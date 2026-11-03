@@ -8,8 +8,10 @@ const PNG_1PX = Buffer.from(
 
 async function applyFromGallery(page: Parameters<typeof openApp>[0], id: string) {
   await page.getByRole('button', { name: '设计', exact: true }).click()
-  await page.locator(`.tpl-card[data-template="${id}"]`).click()
-  await page.getByRole('button', { name: '应用此模板' }).click()
+  const card = page.locator(`.tpl-card[data-template="${id}"]`)
+  await card.click()
+  await card.getByRole('button', { name: '查看大图' }).click()
+  await page.getByRole('button', { name: '应用这套模板' }).click()
   await page.waitForTimeout(120)
 }
 
