@@ -7,27 +7,23 @@ const props = defineProps<{ resume: Resume }>()
 const emit = defineEmits<{ (e: 'locate', target?: string): void }>()
 
 const result = computed(() => audit(props.resume))
-const verdict = computed(() => {
-  const s = result.value.score
-  if (s >= 85) return '像真的，可以投了'
-  if (s >= 70) return '基本可用，还有几处会让人起疑'
-  if (s >= 50) return '有几处明显是包装出来的'
-  return '问题比较大，先改再投'
-})
+const verdict = computed(() => result.value.issues.length
+  ? `${result.value.issues.length} 项需要核对`
+  : '自动规则全部通过')
 const ringColor = computed(() => {
-  const s = result.value.score
-  return s >= 80 ? '#4E6B4A' : s >= 60 ? '#C58B22' : '#B3382A'
+  if (result.value.issues.some(x => x.level === 'err')) return '#B3382A'
+  return result.value.issues.length ? '#C58B22' : '#4E6B4A'
 })
-const badge = (lv: string) => (lv === 'err' ? '必须改' : lv === 'warn' ? '建议改' : '可选')
+const badge = (lv: string) => (lv === 'err' ? '结构错误' : '需要核对')
 </script>
 
 <template>
   <aside class="editor audit-panel">
     <div class="audit-head">
-      <div class="ring" :style="{ '--v': result.score, '--c': ringColor }"><b>{{ result.score }}</b></div>
+      <div class="ring" :style="{ '--v': result.score, '--c': ringColor }"><b>{{ result.passed }}/{{ result.total }}</b></div>
       <div class="audit-verdict">
         <b>{{ verdict }}</b>
-        <span>共 {{ result.bullets }} 条要点 · 点击问题可定位修改</span>
+        <span>{{ result.passed }} / {{ result.total }} 项可验证规则通过</span>
       </div>
     </div>
 
@@ -39,8 +35,11 @@ const badge = (lv: string) => (lv === 'err' ? '必须改' : lv === 'warn' ? '建
         <span class="audit-badge">{{ badge(it.level) }}</span>
       </span>
       <span class="audit-d">{{ it.detail }}</span>
+      <span class="audit-rule">依据：{{ it.rule }}</span>
+      <span v-for="line in it.evidence" :key="line" class="audit-evidence">{{ line }}</span>
     </button>
-    <div v-if="!result.issues.length" class="audit-good">没发现问题。</div>
+    <div v-if="!result.issues.length" class="audit-good">{{ result.good }}</div>
+    <p class="audit-disclaimer">体检只检查页面中可验证的结构和字段规则，不判断经历真伪，也不预测录用结果。</p>
   </aside>
 </template>
 
@@ -62,4 +61,8 @@ const badge = (lv: string) => (lv === 'err' ? '必须改' : lv === 'warn' ? '建
 .dot.err{background:#B3382A}.dot.warn{background:#C58B22}.dot.info{background:#7C8B78}
 .audit-badge{margin-left:auto;font-family:var(--mono);font-size:9px;color:var(--muted)}
 .audit-d{display:block;font-size:11.5px;color:var(--muted);line-height:1.75;margin-top:5px;padding-left:14px}
+.audit-rule{display:block;margin-top:6px;padding-left:14px;font-size:9.5px;line-height:1.6;color:#7C766A}
+.audit-evidence{display:block;margin-top:5px;margin-left:14px;padding:5px 7px;background:#F2EFE8;border-left:2px solid var(--line);
+  font-size:10px;line-height:1.55;color:var(--ink2);word-break:break-word}
+.audit-disclaimer{margin:18px 0 0;padding-top:12px;border-top:1px solid var(--line-soft);font-size:9.5px;line-height:1.7;color:var(--muted)}
 </style>

@@ -1,0 +1,592 @@
+[
+  {
+    "id": "01-geography",
+    "source": {
+      "publisher": "东北师范大学地理科学学院",
+      "url": "https://geo.nenu.edu.cn/jianli.pdf",
+      "note": "公开简历的结构参考；身份、单位和经历均已在夹具中替换为虚构信息。"
+    },
+    "resume": {
+      "name": "林知远",
+      "label": "自然地理研究",
+      "phone": "13800001001",
+      "email": "lin.zhiyuan@example.com",
+      "city": "长春",
+      "summary": "研究植被变化与区域环境演化，能够独立完成野外采样、数据分析和论文写作。",
+      "work": [
+        {
+          "company": "北辰地理研究院",
+          "role": "助理研究员",
+          "start": "2019.07",
+          "end": "至今",
+          "highlights": [
+            "负责北方湿地样带采样与实验分析，累计完成 240 个样点调查。",
+            "整理遥感与植硅体数据，为区域植被恢复研究提供基础数据。"
+          ]
+        }
+      ],
+      "projects": [
+        {
+          "name": "北方湿地植被演替研究",
+          "role": "项目骨干",
+          "highlights": [
+            "设计野外采样方案，并完成数据清洗和统计报告。",
+            "参与撰写研究报告，支撑 2 项省级课题验收。"
+          ]
+        }
+      ],
+      "skills": ["遥感与 GIS", "R 语言数据分析", "野外采样"],
+      "education": [
+        {
+          "institution": "北辰大学",
+          "area": "自然地理学",
+          "studyType": "博士",
+          "start": "2015.09",
+          "end": "2019.06"
+        }
+      ]
+    },
+    "expected": {
+      "name": "林知远",
+      "phone": "13800001001",
+      "email": "lin.zhiyuan@example.com",
+      "workCompanies": ["北辰地理研究院"],
+      "workDates": [["2019.07", "至今"]],
+      "projectNames": ["北方湿地植被演替研究"],
+      "educationSchools": ["北辰大学"],
+      "minHighlights": 2
+    }
+  },
+  {
+    "id": "02-chemistry",
+    "source": {
+      "publisher": "北京大学化学与分子工程学院",
+      "url": "https://www.chem.pku.edu.cn/page/lixg/docs/20181217095825137150.pdf",
+      "note": "公开研究者简历的结构参考；内容已重写并脱敏。"
+    },
+    "resume": {
+      "name": "周明澈",
+      "label": "材料化学研究员",
+      "phone": "13800001002",
+      "email": "zhou.mingche@example.com",
+      "city": "北京",
+      "summary": "材料化学博士，从事储能材料表征与电化学测试，具备跨机构科研协作经验。",
+      "work": [
+        {
+          "company": "京华能源材料中心",
+          "role": "博士后研究员",
+          "start": "2018.09",
+          "end": "2022.06",
+          "highlights": [
+            "搭建电池材料电化学测试流程，完成 8 类样品的循环性能评估。",
+            "维护材料表征设备，编写 12 份标准操作规程。"
+          ]
+        }
+      ],
+      "projects": [
+        {
+          "name": "镁基储氢材料联合研究",
+          "role": "核心成员",
+          "highlights": [
+            "完成材料制备与结构表征，整理 300 余组实验数据。",
+            "与外部实验室协作完成三轮重复验证。"
+          ]
+        }
+      ],
+      "skills": ["电化学测试", "XRD 表征", "科研数据管理"],
+      "education": [
+        {
+          "institution": "京华大学",
+          "area": "无机化学",
+          "studyType": "博士",
+          "start": "2009.09",
+          "end": "2014.06"
+        }
+      ]
+    },
+    "expected": {
+      "name": "周明澈",
+      "phone": "13800001002",
+      "email": "zhou.mingche@example.com",
+      "workCompanies": ["京华能源材料中心"],
+      "workDates": [["2018.09", "2022.06"]],
+      "projectNames": ["镁基储氢材料联合研究"],
+      "educationSchools": ["京华大学"],
+      "minHighlights": 2
+    }
+  },
+  {
+    "id": "03-economics",
+    "source": {
+      "publisher": "清华大学经济管理学院",
+      "url": "https://www.sem.tsinghua.edu.cn/__local/A/82/78/A58C13D5802783BBAC21BDD7292_897ECCA1_4085B.pdf",
+      "note": "公开教师简历的结构参考；全部身份与单位信息已替换。"
+    },
+    "resume": {
+      "name": "顾清岚",
+      "label": "经济学教师 / 教学管理",
+      "phone": "13800001003",
+      "email": "gu.qinglan@example.com",
+      "city": "北京",
+      "summary": "从事数量经济学教学与学院管理工作，负责课程建设、学生培养和科研组织。",
+      "work": [
+        {
+          "company": "京华管理学院",
+          "role": "教授",
+          "start": "2021.01",
+          "end": "至今",
+          "highlights": [
+            "承担本科与研究生课程 6 门，累计授课 600 余课时。",
+            "负责学院本科培养方案修订与课程评估。"
+          ]
+        },
+        {
+          "company": "京华管理学院经济系",
+          "role": "副教授",
+          "start": "2012.09",
+          "end": "2020.12",
+          "highlights": [
+            "指导 18 名研究生完成学位论文。",
+            "组织年度学术研讨会并推动跨院合作。"
+          ]
+        }
+      ],
+      "projects": [
+        {
+          "name": "数字经济人才培养改革",
+          "role": "项目负责人",
+          "highlights": [
+            "重构 3 门核心课程，引入案例教学和数据分析实践。",
+            "形成课程质量评估报告，并在学院内推广。"
+          ]
+        }
+      ],
+      "skills": ["计量经济学", "课程设计", "科研项目管理"],
+      "education": [
+        {
+          "institution": "京华大学",
+          "area": "数量经济学",
+          "studyType": "博士",
+          "start": "1994.09",
+          "end": "1999.08"
+        }
+      ]
+    },
+    "expected": {
+      "name": "顾清岚",
+      "phone": "13800001003",
+      "email": "gu.qinglan@example.com",
+      "workCompanies": ["京华管理学院", "京华管理学院经济系"],
+      "workDates": [["2021.01", "至今"], ["2012.09", "2020.12"]],
+      "projectNames": ["数字经济人才培养改革"],
+      "educationSchools": ["京华大学"],
+      "minHighlights": 2
+    }
+  },
+  {
+    "id": "04-marketing",
+    "source": {
+      "publisher": "清华大学经济管理学院",
+      "url": "https://pg.sem.tsinghua.edu.cn/zhongwenjianli-guyu-20240104.pdf",
+      "note": "公开博士生简历的结构参考；论文与身份信息未保留。"
+    },
+    "resume": {
+      "name": "沈安然",
+      "label": "消费者行为研究",
+      "phone": "13800001004",
+      "email": "shen.anran@example.com",
+      "city": "上海",
+      "summary": "市场营销博士生，关注数字营销、消费者决策与直播电商，具备实验设计与数据分析经验。",
+      "work": [
+        {
+          "company": "海川消费研究中心",
+          "role": "研究助理",
+          "start": "2022.03",
+          "end": "2024.01",
+          "highlights": [
+            "设计 4 组消费者行为实验，回收有效问卷 1200 份。",
+            "使用 R 完成回归分析与结果可视化。"
+          ]
+        }
+      ],
+      "projects": [
+        {
+          "name": "直播购物体验研究",
+          "role": "研究负责人",
+          "highlights": [
+            "访谈 30 名消费者并搭建研究编码表。",
+            "将访谈结论转化为实验材料与测量量表。"
+          ]
+        }
+      ],
+      "skills": ["实验设计", "SPSS", "R 语言", "学术写作"],
+      "education": [
+        {
+          "institution": "东海大学",
+          "area": "市场营销",
+          "studyType": "博士",
+          "start": "2021.09",
+          "end": "2026.06"
+        }
+      ]
+    },
+    "expected": {
+      "name": "沈安然",
+      "phone": "13800001004",
+      "email": "shen.anran@example.com",
+      "workCompanies": ["海川消费研究中心"],
+      "workDates": [["2022.03", "2024.01"]],
+      "projectNames": ["直播购物体验研究"],
+      "educationSchools": ["东海大学"],
+      "minHighlights": 2
+    }
+  },
+  {
+    "id": "05-embedded",
+    "source": {
+      "publisher": "天元人才网",
+      "url": "https://www.tycc.cn/file/1d150a9d5a554d51b4ebe65af2286764.pdf",
+      "note": "公开应届生简历的结构参考；个人与单位信息均已替换。"
+    },
+    "resume": {
+      "name": "韩启航",
+      "label": "嵌入式开发实习生",
+      "phone": "13800001005",
+      "email": "han.qihang@example.com",
+      "city": "郑州",
+      "summary": "物联网工程本科生，熟悉 C 语言与 STM32 外设开发，完成过传感器采集和界面集成项目。",
+      "work": [
+        {
+          "company": "中原智联信息技术有限公司",
+          "role": "前端开发实习生",
+          "start": "2025.01",
+          "end": "2025.03",
+          "highlights": [
+            "完成 6 个用户界面组件的开发与集成。",
+            "按设计规范修复跨设备显示问题，参与代码评审。"
+          ]
+        }
+      ],
+      "projects": [
+        {
+          "name": "温湿度采集终端",
+          "role": "嵌入式开发",
+          "highlights": [
+            "使用 STM32 完成传感器采集、串口通信和数据显示。",
+            "编写调试记录并定位 3 类通信异常。"
+          ]
+        }
+      ],
+      "skills": ["C 语言", "STM32", "Keil", "Python"],
+      "education": [
+        {
+          "institution": "中州理工学院",
+          "area": "物联网工程",
+          "studyType": "本科",
+          "start": "2022.09",
+          "end": "2026.06"
+        }
+      ]
+    },
+    "expected": {
+      "name": "韩启航",
+      "phone": "13800001005",
+      "email": "han.qihang@example.com",
+      "workCompanies": ["中原智联信息技术有限公司"],
+      "workDates": [["2025.01", "2025.03"]],
+      "projectNames": ["温湿度采集终端"],
+      "educationSchools": ["中州理工学院"],
+      "minHighlights": 2
+    }
+  },
+  {
+    "id": "06-ai",
+    "source": {
+      "publisher": "公开个人简历站点",
+      "url": "https://www.huii.top/zhenghui_CV_20260313.pdf",
+      "note": "公开 AI 算法简历的结构参考；内容已完全重写。"
+    },
+    "resume": {
+      "name": "唐予川",
+      "label": "AI 算法工程师",
+      "phone": "13800001006",
+      "email": "tang.yuchuan@example.com",
+      "city": "深圳",
+      "summary": "人工智能硕士，研究多模态图像融合与视觉复原，熟悉 PyTorch、Transformer 和模型推理部署。",
+      "work": [
+        {
+          "company": "南岭智能技术有限公司",
+          "role": "算法实习生",
+          "start": "2025.07",
+          "end": "2025.09",
+          "highlights": [
+            "参与多模态数据清洗与训练集构建，处理 20 万条样本。",
+            "复现图像融合基线模型，并完成推理速度测试。"
+          ]
+        }
+      ],
+      "projects": [
+        {
+          "name": "多源视觉感知平台",
+          "role": "核心算法研发",
+          "highlights": [
+            "设计图像融合训练流程，在验证集上提升 3 项指标。",
+            "使用 FastAPI 封装模型服务并补充接口文档。"
+          ]
+        }
+      ],
+      "skills": ["Python", "PyTorch", "Transformer", "FastAPI", "Docker"],
+      "education": [
+        {
+          "institution": "南方科技大学",
+          "area": "人工智能",
+          "studyType": "硕士",
+          "start": "2023.09",
+          "end": "2026.06"
+        }
+      ]
+    },
+    "expected": {
+      "name": "唐予川",
+      "phone": "13800001006",
+      "email": "tang.yuchuan@example.com",
+      "workCompanies": ["南岭智能技术有限公司"],
+      "workDates": [["2025.07", "2025.09"]],
+      "projectNames": ["多源视觉感知平台"],
+      "educationSchools": ["南方科技大学"],
+      "minHighlights": 2
+    }
+  },
+  {
+    "id": "07-robotics",
+    "source": {
+      "publisher": "天津工业大学计算机学院",
+      "url": "https://cs.tiangong.edu.cn/_upload/article/files/32/5a/2322c3114231b3bd872aae2fc37c/a9ee49a3-8b75-46c9-847a-4e779445f803.pdf",
+      "note": "公开教师简历的结构参考；研究方向与任职信息已脱敏重写。"
+    },
+    "resume": {
+      "name": "梁砚舟",
+      "label": "智能机器人教授",
+      "phone": "13800001007",
+      "email": "liang.yanzhou@example.com",
+      "city": "天津",
+      "summary": "从事计算机视觉、智能机器人和医学成像研究，主持多项省部级科研项目并承担研究生教学。",
+      "work": [
+        {
+          "company": "津港工业大学",
+          "role": "教授",
+          "start": "2015.04",
+          "end": "至今",
+          "highlights": [
+            "主持 5 项省部级科研项目，累计科研经费 600 万元。",
+            "建设智能机器人实验室，指导 30 余名研究生。"
+          ]
+        }
+      ],
+      "projects": [
+        {
+          "name": "自主移动机器人感知系统",
+          "role": "项目负责人",
+          "highlights": [
+            "组织视觉感知与路径规划联合实验，完成 4 类场景验证。",
+            "推动研究成果在 2 家制造企业试点。"
+          ]
+        }
+      ],
+      "skills": ["计算机视觉", "机器人系统", "科研团队管理"],
+      "education": [
+        {
+          "institution": "津港大学",
+          "area": "自动化",
+          "studyType": "博士",
+          "start": "2000.03",
+          "end": "2003.03"
+        }
+      ]
+    },
+    "expected": {
+      "name": "梁砚舟",
+      "phone": "13800001007",
+      "email": "liang.yanzhou@example.com",
+      "workCompanies": ["津港工业大学"],
+      "workDates": [["2015.04", "至今"]],
+      "projectNames": ["自主移动机器人感知系统"],
+      "educationSchools": ["津港大学"],
+      "minHighlights": 2
+    }
+  },
+  {
+    "id": "08-cpp-intern",
+    "source": {
+      "publisher": "长春理工大学中山研究院",
+      "url": "https://zs.cust.edu.cn/docs/2024-05/2fc2ea78ddc74064b6e5bbd20d886d0d.pdf",
+      "note": "公开实习生简历的结构参考；姓名、联系方式与学校信息已替换。"
+    },
+    "resume": {
+      "name": "于博文",
+      "label": "C++ 开发实习生",
+      "phone": "13800001008",
+      "email": "yu.bowen@example.com",
+      "city": "广州",
+      "summary": "计算机技术硕士，熟悉 C++、Linux 和 Qt，具备算法训练与桌面软件调试经验。",
+      "work": [
+        {
+          "company": "岭南软件技术中心",
+          "role": "研发实习生",
+          "start": "2024.07",
+          "end": "2024.12",
+          "highlights": [
+            "使用 Qt 完成设备管理模块的界面与事件处理。",
+            "在 Linux 环境下定位并修复 15 个缺陷。"
+          ]
+        }
+      ],
+      "projects": [
+        {
+          "name": "实验室设备控制工具",
+          "role": "C++ 开发",
+          "highlights": [
+            "实现串口通信、数据缓存和异常重连。",
+            "编写单元测试并整理部署文档。"
+          ]
+        }
+      ],
+      "skills": ["C++", "Qt", "Linux", "MySQL", "Python"],
+      "education": [
+        {
+          "institution": "岭南理工大学",
+          "area": "计算机技术",
+          "studyType": "硕士",
+          "start": "2022.09",
+          "end": "2025.06"
+        }
+      ]
+    },
+    "expected": {
+      "name": "于博文",
+      "phone": "13800001008",
+      "email": "yu.bowen@example.com",
+      "workCompanies": ["岭南软件技术中心"],
+      "workDates": [["2024.07", "2024.12"]],
+      "projectNames": ["实验室设备控制工具"],
+      "educationSchools": ["岭南理工大学"],
+      "minHighlights": 2
+    }
+  },
+  {
+    "id": "09-public-health",
+    "source": {
+      "publisher": "北京大学全球健康发展研究院",
+      "url": "https://www.ghd.pku.edu.cn/docs//2021-05/f051cdad6ae54fa890ce005fda755b60.pdf",
+      "note": "公开研究简历的结构参考；身份、论文与工作单位均未保留。"
+    },
+    "resume": {
+      "name": "许清和",
+      "label": "公共卫生研究员",
+      "phone": "13800001009",
+      "email": "xu.qinghe@example.com",
+      "city": "上海",
+      "summary": "公共卫生博士，研究群体健康与遗传流行病学，擅长队列数据治理和统计建模。",
+      "work": [
+        {
+          "company": "东海健康研究院",
+          "role": "博士后研究员",
+          "start": "2019.10",
+          "end": "2021.09",
+          "highlights": [
+            "管理 5 万人队列数据，建立变量字典和质量检查流程。",
+            "完成遗传与环境交互分析并撰写研究报告。"
+          ]
+        }
+      ],
+      "projects": [
+        {
+          "name": "城市居民健康队列",
+          "role": "数据负责人",
+          "highlights": [
+            "整合 3 个来源的健康问卷与体检记录。",
+            "设计缺失值处理方案并支持 4 项子研究。"
+          ]
+        }
+      ],
+      "skills": ["流行病学", "统计建模", "队列数据治理", "英文论文写作"],
+      "education": [
+        {
+          "institution": "港城医科大学",
+          "area": "公共卫生",
+          "studyType": "博士",
+          "start": "2013.09",
+          "end": "2017.11"
+        }
+      ]
+    },
+    "expected": {
+      "name": "许清和",
+      "phone": "13800001009",
+      "email": "xu.qinghe@example.com",
+      "workCompanies": ["东海健康研究院"],
+      "workDates": [["2019.10", "2021.09"]],
+      "projectNames": ["城市居民健康队列"],
+      "educationSchools": ["港城医科大学"],
+      "minHighlights": 2
+    }
+  },
+  {
+    "id": "10-anthropology",
+    "source": {
+      "publisher": "西北农林科技大学人文社会发展学院",
+      "url": "https://ch.nwsuaf.edu.cn/docs/2024-12/ba5f463b4f5a4730a2d778bf32d184c1.pdf",
+      "note": "公开博士简历的结构参考；所有身份、学校和项目信息均已替换。"
+    },
+    "resume": {
+      "name": "程知微",
+      "label": "人类学博士研究生",
+      "phone": "13800001010",
+      "email": "cheng.zhiwei@example.com",
+      "city": "广州",
+      "summary": "人类学博士研究生，关注城乡流动、社区协作与产业转型，具备长期田野调查和民族志写作经验。",
+      "work": [
+        {
+          "company": "华南社会调查中心",
+          "role": "研究助理",
+          "start": "2021.03",
+          "end": "2023.08",
+          "highlights": [
+            "完成 60 户家庭的长期访谈与观察记录。",
+            "整理访谈材料并建立可检索的田野资料库。"
+          ]
+        }
+      ],
+      "projects": [
+        {
+          "name": "城乡产业协作民族志",
+          "role": "博士研究",
+          "highlights": [
+            "在两个县域完成 8 个月田野调查。",
+            "撰写研究报告并在学术会议汇报。"
+          ]
+        }
+      ],
+      "skills": ["田野调查", "深度访谈", "质性分析", "学术写作"],
+      "education": [
+        {
+          "institution": "南岭社会科学大学",
+          "area": "人类学",
+          "studyType": "博士",
+          "start": "2020.09",
+          "end": "2025.12"
+        }
+      ]
+    },
+    "expected": {
+      "name": "程知微",
+      "phone": "13800001010",
+      "email": "cheng.zhiwei@example.com",
+      "workCompanies": ["华南社会调查中心"],
+      "workDates": [["2021.03", "2023.08"]],
+      "projectNames": ["城乡产业协作民族志"],
+      "educationSchools": ["南岭社会科学大学"],
+      "minHighlights": 2
+    }
+  }
+]

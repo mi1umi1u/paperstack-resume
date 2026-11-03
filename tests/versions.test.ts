@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest'
 import { blankResume, sampleResume } from '../src/core/model'
 import {
   createLibrary, currentVersion, addVersion, updateVersion,
-  renameVersion, removeVersion
+  renameVersion, removeVersion, serializeLibrary, deserializeLibrary, addSnapshot
 } from '../src/core/versions'
 
 const r1 = sampleResume()
@@ -68,5 +68,19 @@ describe('多版本', () => {
   it('currentId 失效时回退到第一个版本', () => {
     const lib = { ...createLibrary(r1, 'A'), currentId: 'not-exist' }
     expect(currentVersion(lib)?.id).toBe(lib.versions[0].id)
+  })
+
+  it('完整备份保留所有版本和快照并可恢复', () => {
+    let lib = addVersion(createLibrary(r1, 'A'), 'B', r2)
+    lib = addSnapshot(lib, lib.currentId, 'B 快照', r2)
+    const restored = deserializeLibrary(serializeLibrary(lib))
+    expect(restored?.versions).toHaveLength(2)
+    expect(currentVersion(restored!)?.name).toBe('B')
+    expect(currentVersion(restored!)?.snapshots[0].name).toBe('B 快照')
+  })
+
+  it('拒绝无效完整备份', () => {
+    expect(deserializeLibrary('{}')).toBeNull()
+    expect(deserializeLibrary('not-json')).toBeNull()
   })
 })

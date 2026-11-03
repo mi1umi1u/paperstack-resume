@@ -1,0 +1,27 @@
+{
+  "date": "2026-11-03",
+  "documents": 20,
+  "pdf": 10,
+  "docx": 10,
+  "uniqueCandidates": 10,
+  "scope": "受控生成的脱敏 PDF/DOCX 夹具，不代表任意复杂真实 PDF 的识别准确率。",
+  "metrics": {
+    "moduleBoundary": 1,
+    "namePhoneEmail": 1,
+    "workDates": 1,
+    "companyRole": 1,
+    "bulletAttribution": 1
+  },
+  "thresholds": {
+    "moduleBoundary": 0.9,
+    "namePhoneEmail": 0.95,
+    "workDates": 0.9,
+    "companyRole": 0.8,
+    "bulletAttribution": 0.85
+  },
+  "notes": [
+    "所有身份与单位信息均替换为虚构数据。",
+    "PDF 与 DOCX 来自同一份虚构数据，用于分别验证文件解析路径。",
+    "公开来源只用于研究简历结构和字段组合。"
+  ]
+}

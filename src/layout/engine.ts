@@ -68,7 +68,12 @@ function measure(html: string, comp: Comp, opts: LayoutOpts) {
   const s = mkSheet(comp, opts)
   s.innerHTML = html
   const doc = s.firstElementChild as HTMLElement | null
-  const r = { docH: doc ? doc.offsetHeight : 0, avail: contentArea(s) }
+  const side = doc?.querySelector('.doc-side') as HTMLElement | null
+  const main = doc?.querySelector('.doc-main') as HTMLElement | null
+  const docH = main
+    ? Math.max(main.scrollHeight, side?.scrollHeight || 0)
+    : (doc ? doc.offsetHeight : 0)
+  const r = { docH, avail: contentArea(s) }
   s.remove()
   return r
 }
@@ -154,13 +159,19 @@ function extractUnits(src: Element): Unit[] {
   return units
 }
 
-interface PageBox { el: HTMLDivElement; units: Unit[] }
+interface PageBox {
+  el: HTMLDivElement
+  units: Unit[]
+  docClass: string
+  sideHtml: string
+  continued: boolean
+}
 
-function renderPage(pg: PageBox, docClass: string) {
+function renderPage(pg: PageBox) {
   const el = pg.el
   el.innerHTML = ''
   const doc = document.createElement('div')
-  doc.className = docClass
+  doc.className = `${pg.docClass}${pg.continued ? ' continued' : ''}`
   el.appendChild(doc)
 
   let sec: HTMLElement | null = null
@@ -169,12 +180,24 @@ function renderPage(pg: PageBox, docClass: string) {
   let ul: HTMLElement | null = null
   let flatUl: HTMLElement | null = null
   let secId: string | null = null
+  let flowRoot: HTMLElement = doc
+
+  if (pg.sideHtml) {
+    if (pg.continued) {
+      flowRoot = document.createElement('div')
+      flowRoot.className = 'doc-main'
+      doc.appendChild(flowRoot)
+    } else {
+      doc.insertAdjacentHTML('beforeend', `<aside class="doc-side">${pg.sideHtml}</aside><div class="doc-main"></div>`)
+      flowRoot = doc.querySelector('.doc-main') as HTMLElement
+    }
+  }
 
   const openSection = (u: any) => {
     sec = document.createElement('section')
     sec.className = u.cls || 'sec'
     if (u.dataKey) (sec as HTMLElement).dataset.key = u.dataKey
-    doc.appendChild(sec)
+    flowRoot.appendChild(sec)
     body = document.createElement('div')
     body.className = 'sec-body'
     sec.appendChild(body)
@@ -184,7 +207,7 @@ function renderPage(pg: PageBox, docClass: string) {
 
   pg.units.forEach(u => {
     if (u.kind === 'block') {
-      doc.appendChild(u.node as Node)
+      flowRoot.appendChild(u.node as Node)
       sec = body = item = ul = flatUl = null; secId = null
       return
     }
@@ -243,7 +266,8 @@ function splitBullet(pg: PageBox, u: Extract<Unit, { kind: 'bullet' }>, area: nu
   if (Math.round(totalH / lineH) < 3) return null
 
   const docEl = pg.el.querySelector('.doc') as HTMLElement | null
-  const used = docEl ? docEl.offsetHeight : 0
+  const main = docEl?.querySelector('.doc-main') as HTMLElement | null
+  const used = main ? main.scrollHeight : (docEl ? docEl.offsetHeight : 0)
   const room = area - (used - totalH)
   if (room < lineH * 2) return null
 
@@ -298,6 +322,7 @@ export interface FitReport {
   lineHeight: number
   minFontSize: number
   minLineHeight: number
+  warnings: string[]
 }
 
 export interface LayoutResult { pages: number; compressed: boolean; report: FitReport }
@@ -310,22 +335,35 @@ export function layout(docHtml: string, host: HTMLElement, opts: LayoutOpts): La
     temp.innerHTML = docHtml
     const src = temp.firstElementChild as Element | null
     const docClass = src ? src.className : `doc doc-${opts.template}`
-    const units = src ? extractUnits(src) : []
+    const side = src?.querySelector('.doc-side') as HTMLElement | null
+    const main = src?.querySelector('.doc-main') as HTMLElement | null
+    const sideHtml = side?.innerHTML || ''
+    const units = src ? extractUnits(main || src) : []
     temp.remove()
 
     const pages: PageBox[] = []
-    let cur: PageBox
+    let cur!: PageBox
 
     const newPage = () => {
       const el = mkSheet(comp, opts)
-      const pg: PageBox = { el, units: [] }
+      const pg: PageBox = {
+        el,
+        units: [],
+        docClass,
+        sideHtml,
+        continued: !!sideHtml && pages.length > 0
+      }
       pages.push(pg)
       cur = pg
-      renderPage(cur, docClass)
+      renderPage(cur)
       return pg
     }
     const area = () => contentArea(cur.el)
-    const over = () => cur.el.scrollHeight > cur.el.clientHeight + 1
+    const over = () => {
+      const main = cur.el.querySelector('.doc-main') as HTMLElement | null
+      if (main) return main.scrollHeight > main.clientHeight + 1
+      return cur.el.scrollHeight > cur.el.clientHeight + 1
+    }
 
     const popDangling = () => {
       const out: Unit[] = []
@@ -344,10 +382,10 @@ export function layout(docHtml: string, host: HTMLElement, opts: LayoutOpts): La
     while (queue.length && guard++ < 4000) {
       const u = queue.shift() as Unit
 
-      if (u.pb && cur.units.length) newPage()
+      if ('pb' in u && u.pb && cur.units.length) newPage()
 
       cur.units.push(u)
-      renderPage(cur, docClass)
+      renderPage(cur)
       if (!over()) continue
 
       if (u.kind === 'bullet') {
@@ -360,7 +398,7 @@ export function layout(docHtml: string, host: HTMLElement, opts: LayoutOpts): La
             tailLi.dataset.bi = (u.node as HTMLElement).dataset.bi
           }
           ;(u.node as HTMLElement).textContent = sp.head
-          renderPage(cur, docClass)
+          renderPage(cur)
           queue.unshift({
             kind: 'bullet', secId: u.secId, g: u.g, node: tailLi,
             keep: false, pb: false, flat: u.flat, dataKey: u.dataKey, itemId: u.itemId
@@ -370,7 +408,7 @@ export function layout(docHtml: string, host: HTMLElement, opts: LayoutOpts): La
       }
 
       let carry: Unit[] = [u]
-      if (u.kind !== 'block' && u.keep && (u as any).g) {
+      if (u.kind !== 'block' && 'keep' in u && u.keep && (u as any).g) {
         const g = (u as any).g as string
         const idx = cur.units.findIndex(x => (x as any).g === g)
         if (idx >= 0) carry = cur.units.splice(idx)
@@ -380,21 +418,22 @@ export function layout(docHtml: string, host: HTMLElement, opts: LayoutOpts): La
       }
 
       carry = popDangling().concat(carry)
-      renderPage(cur, docClass)
+      renderPage(cur)
 
       if (cur.units.length === 0) {
         cur.units.push(...carry)
-        renderPage(cur, docClass)
+        renderPage(cur)
         continue
       }
 
       newPage()
       cur.units.push(...carry)
-      renderPage(cur, docClass)
+      renderPage(cur)
     }
 
     pages.forEach((pg, i) => {
       if (i === pages.length - 1) return
+      if (pg.sideHtml) return
       const docEl = pg.el.querySelector('.doc') as HTMLElement | null
       if (!docEl) return
       const left = contentArea(pg.el) - docEl.offsetHeight
@@ -448,7 +487,12 @@ export function layout(docHtml: string, host: HTMLElement, opts: LayoutOpts): La
     fontSize,
     lineHeight,
     minFontSize: 13.5,
-    minLineHeight: 1.41
+    minLineHeight: 1.41,
+    warnings: []
+  }
+  const firstSide = pages[0]?.el.querySelector('.doc-side') as HTMLElement | null
+  if (firstSide && firstSide.scrollHeight > firstSide.clientHeight + 1) {
+    report.warnings.push('侧栏内容超出第一页；请精简侧栏，或在侧栏模块中移动部分内容。')
   }
   return { pages: pages.length, compressed: compressedApplied, report }
 }

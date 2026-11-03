@@ -68,6 +68,7 @@ export type TemplateId = 'su' | 'yin' | 'mi' | 'xian' | 'zhou' | 'zhao' | 'kuai'
 export type FontId = 'song' | 'yahei' | 'hei'
 export type DensityId = 'compact' | 'normal' | 'loose'
 export type PageTarget = 'auto' | '1' | '2' | '3'
+export type ResumeLang = 'zh' | 'en'
 
 export interface Meta {
   template: TemplateId
@@ -76,6 +77,7 @@ export interface Meta {
   density: DensityId
   autoFit: boolean
   targetPages: PageTarget
+  lang: ResumeLang
   order: string[]                  // work | projects | skills | education | 自定义模块 id
   titles: Record<string, string>
   customSections: CustomSection[]
@@ -102,6 +104,13 @@ export const DEFAULT_TITLES: Record<string, string> = {
   education: '教育背景'
 }
 
+export const DEFAULT_TITLES_EN: Record<string, string> = {
+  work: 'Work Experience',
+  projects: 'Projects',
+  skills: 'Skills',
+  education: 'Education'
+}
+
 export const ACCENTS = [
   { value: '#1B3557', name: '蓝' },
   { value: '#161614', name: '墨' },
@@ -123,6 +132,7 @@ export function blankResume(): Resume {
       density: 'normal',
       autoFit: true,
       targetPages: 'auto',
+      lang: 'zh',
       order: ['work', 'projects', 'skills', 'education'],
       titles: { ...DEFAULT_TITLES },
       customSections: [],

@@ -1,5 +1,5 @@
 import { get, set } from 'idb-keyval'
-import { blankResume, uid, DEFAULT_TITLES, type Resume, type CustomSection } from './model'
+import { blankResume, uid, DEFAULT_TITLES, type Resume, type CustomSection, type ResumeLang } from './model'
 
 const IDB_KEY = 'paperstack.resume.v2'
 const LS_KEY = 'paperstack.resume.v1'   // v0.3 的 localStorage 键，用于迁移
@@ -17,7 +17,9 @@ export function normalize(input: any): Resume {
     email: b.email || '',
     city: (b.location && b.location.city) || b.city || '',
     summary: b.summary || '',
-    image: b.image || undefined,
+    image: typeof b.image === 'string' && /^data:image\/(?:jpeg|png|webp);base64,[a-z0-9+/=\s]+$/i.test(b.image)
+      ? b.image
+      : undefined,
     custom: Array.isArray(b.custom) ? b.custom.map((c: any) => ({ label: c.label || '', value: c.value || '' })) : []
   }
 
@@ -81,6 +83,9 @@ export function normalize(input: any): Resume {
     density: m.density || 'normal',
     autoFit: m.autoFit !== false,
     targetPages: m.targetPages === '1' || m.targetPages === '2' || m.targetPages === '3' ? m.targetPages : 'auto',
+    lang: m.lang === 'en' || m.lang === 'zh'
+      ? m.lang as ResumeLang
+      : (m.template === 'en' ? 'en' : 'zh'),
     order,
     titles: { ...DEFAULT_TITLES, ...(m.titles || {}) },
     customSections: base.meta.customSections,

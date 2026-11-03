@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test'
 import { openApp } from './helpers'
+import { resolve } from 'node:path'
 
 const SAMPLE = `张三
 13800001111  zhangsan@example.com  北京
@@ -102,4 +103,24 @@ test('确认页能改日期字段', async ({ page }) => {
 
   const r = await page.evaluate(() => (window as any).__ps.resume())
   expect(r.work[0].start).toBe('2021.05')
+})
+
+test('公开来源重建的 PDF 夹具可通过文件选择导入', async ({ page }) => {
+  await page.getByRole('button', { name: '选择文件' }).click()
+  await page.locator('.import-modal input[type="file"]').setInputFiles(
+    resolve('tests/fixtures/resume-corpus/pdf/01-geography.pdf')
+  )
+  await expect(page.locator('.pane.right .row.edit input').first()).toHaveValue('林知远', { timeout: 15000 })
+  await expect(page.locator('.pane.right .entry-input').first()).toHaveValue('北辰地理研究院')
+  await expect(page.locator('.pane.right')).toContainText('项目经历')
+})
+
+test('公开来源重建的 DOCX 夹具可通过文件选择导入', async ({ page }) => {
+  await page.getByRole('button', { name: '选择文件' }).click()
+  await page.locator('.import-modal input[type="file"]').setInputFiles(
+    resolve('tests/fixtures/resume-corpus/docx/06-ai.docx')
+  )
+  await expect(page.locator('.pane.right .row.edit input').first()).toHaveValue('唐予川', { timeout: 15000 })
+  await expect(page.locator('.pane.right .entry-input').first()).toHaveValue('南岭智能技术有限公司')
+  await expect(page.locator('.pane.right')).toContainText('2 条要点')
 })

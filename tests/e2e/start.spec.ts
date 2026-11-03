@@ -65,8 +65,10 @@ test('新建页仍可将当前简历复制为独立版本', async ({ page }) => 
 
   const copy = page.getByRole('button', { name: '复制当前版本' })
   await expect(copy).toBeVisible()
-  page.on('dialog', dialog => dialog.accept('当前简历副本'))
   await copy.click()
+  const prompt = page.getByRole('dialog', { name: '新建版本' })
+  await prompt.getByLabel('版本名称').fill('当前简历副本')
+  await prompt.getByRole('button', { name: '确定' }).click()
 
   await expect(page.locator('.start-screen')).toBeHidden()
   await expect(page.locator('.ver-select option')).toHaveCount(2)

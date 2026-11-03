@@ -1,11 +1,16 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import type { Snapshot } from '../core/versions'
-import { diffSnapshots } from '../core/versions'
+import { diffSnapshots, MAX_SNAPSHOTS } from '../core/versions'
 import type { Resume } from '../core/model'
 
 const props = defineProps<{ snapshots: Snapshot[]; resume: Resume }>()
-const emit = defineEmits<{ (e: 'close'): void; (e: 'save', name: string): void; (e: 'restore', id: string): void }>()
+const emit = defineEmits<{
+  (e: 'close'): void
+  (e: 'save', name: string): void
+  (e: 'restore', id: string): void
+  (e: 'delete', id: string): void
+}>()
 
 const name = ref('')
 
@@ -32,21 +37,24 @@ const tags = (s: Snapshot) => {
       <div class="modal-head">
         <span class="modal-title">版本快照</span>
         <span class="modal-sub">保存当前内容和样式，恢复时生成新版本，不覆盖现有内容</span>
+        <span class="snap-count">{{ snapshots.length }} / {{ MAX_SNAPSHOTS }}</span>
       </div>
 
       <div class="modal-body">
         <div class="snap-new">
           <input v-model="name" placeholder="快照名称，如「投递前」" @keyup.enter="save" />
-          <button class="btn primary" :disabled="!name.trim()" @click="save">保存快照</button>
+          <button class="btn primary" :disabled="!name.trim() || snapshots.length >= MAX_SNAPSHOTS" @click="save">保存快照</button>
         </div>
 
         <div v-if="!snapshots.length" class="snap-empty">还没有快照。</div>
+        <div v-else-if="snapshots.length >= MAX_SNAPSHOTS" class="snap-limit">快照已达上限。请先删除不再需要的快照；系统不会自动删除旧快照。</div>
         <div v-for="s in snapshots" :key="s.id" class="snap-item">
           <div class="snap-main">
             <span class="snap-name">{{ s.name }}</span>
             <span class="snap-time">{{ time(s.createdAt) }}</span>
             <span v-if="tags(s).length" class="snap-tags"><i v-for="t in tags(s)" :key="t">{{ t }}</i></span>
           </div>
+          <button class="btn tiny snap-delete" type="button" @click="emit('delete', s.id)">删除</button>
           <button class="btn tiny" type="button" @click="emit('restore', s.id)">恢复为新版本</button>
         </div>
       </div>
@@ -70,4 +78,8 @@ const tags = (s: Snapshot) => {
 .snap-item:last-child{border-bottom:0}
 .snap-name{font-size:13px;font-weight:600;color:var(--ink)}
 .snap-time{margin-left:auto;font-family:var(--mono);font-size:10px;color:var(--muted)}
+.snap-count{margin-left:auto;font:10px var(--mono);color:var(--muted)}
+.snap-limit{margin:0 0 10px;padding:8px 9px;border-left:2px solid var(--accent);background:var(--accent-soft);
+  font-size:10.5px;line-height:1.6;color:var(--ink2)}
+.snap-delete{color:var(--accent)}
 </style>

@@ -13,7 +13,9 @@ const result = ref<ParseResult | null>(null)
 
 const conf = computed(() => result.value?.confidence ?? 0)
 const confLabel = computed(() =>
-  conf.value >= 80 ? '识别得比较准' : conf.value >= 55 ? '大致对，建议核对' : '识别质量不高，请逐条核对'
+  conf.value >= 85 ? '结构较完整，仍需核对字段与经历归属'
+    : conf.value >= 55 ? '存在不确定内容，请重点核对'
+      : '识别质量不高，请逐条核对'
 )
 
 const work = computed(() => result.value?.resume.work ?? [])

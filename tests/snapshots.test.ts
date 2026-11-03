@@ -37,15 +37,15 @@ describe('命名快照', () => {
     expect(currentVersion(lib3)!.resume.basics.name).toBe(sampleResume().basics.name)
   })
 
-  it('快照数量达到上限时只保留最新的上限内快照', () => {
+  it('快照数量达到上限时拒绝新增，不静默删除旧快照', () => {
     let lib = createLibrary(r1, 'A')
     for (let i = 0; i < 32; i++) {
       lib = addSnapshot(lib, lib.currentId, `s${i}`, r1)
     }
     const snaps = currentVersion(lib)!.snapshots
     expect(snaps.length).toBe(30)
-    expect(snaps[snaps.length - 1].name).toBe('s31')
-    expect(snaps[0].name).toBe('s2')
+    expect(snaps[snaps.length - 1].name).toBe('s29')
+    expect(snaps[0].name).toBe('s0')
   })
 
   it('diffSnapshots 能区分内容、结构与样式变化', () => {

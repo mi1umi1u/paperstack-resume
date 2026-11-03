@@ -56,6 +56,18 @@ describe('normalize 结构归一化', () => {
     expect(r.work[0].role).toBe('SRE')
     expect(r.skills).toEqual(['Go'])
   })
+
+  it('补上语言字段，并兼容旧版英文模板数据', () => {
+    expect(normalize({}).meta.lang).toBe('zh')
+    expect(normalize({ meta: { template: 'en' } }).meta.lang).toBe('en')
+    expect(normalize({ meta: { template: 'en', lang: 'zh' } }).meta.lang).toBe('zh')
+  })
+
+  it('导入时丢弃外部图片 URL，只保留本地 data URL', () => {
+    expect(normalize({ basics: { image: 'https://example.com/a.jpg' } }).basics.image).toBeUndefined()
+    expect(normalize({ basics: { image: 'data:image/png;base64,AAAA' } }).basics.image)
+      .toBe('data:image/png;base64,AAAA')
+  })
 })
 
 describe('parseText 导入拆分', () => {
@@ -99,6 +111,64 @@ TCP/IP · VLAN
     const r = parseText(text).resume
     expect(r.skills.length).toBeGreaterThanOrEqual(2)
     expect(r.education.length).toBe(1)
+  })
+
+  it('兼容逐字 PDF 标题、空格姓名、跨行电话和分散日期', () => {
+    const r = parseText(`个人简历
+姓名：林 子 安 性别：男
+手机号：+86 136-3529-2352
+邮箱：lin@example.com
+教育背景
+20 20 . 0 9 - 20 22 . 0 6  北辰大学｜计算机技术｜硕士
+工作经历
+20 22 . 0 7 - 20 23 . 0 6  星海科技有限公司｜开发工程师
+• 负责终端运维和故障排查。
+发表论文
+论文标题一
+个人能力
+C++、Linux`).resume
+    expect(r.basics.name).toBe('林子安')
+    expect(r.basics.phone).toBe('13635292352')
+    expect(r.work[0].start).toBe('2022.07')
+    expect(r.work[0].end).toBe('2023.06')
+    expect(r.work).toHaveLength(1)
+    expect(r.skills).toContain('C++')
+    expect(r.skills).not.toContain('论文标题一')
+  })
+
+  it('简历标题和姓名分属两行时仍能识别姓名', () => {
+    const r = parseText('个人简历\n林子安，教授，博士生导师\n学习经历\n2010.09 — 2014.06 北辰大学 计算机科学 博士').resume
+    expect(r.basics.name).toBe('林子安')
+    expect(r.education[0].institution).toContain('北辰大学')
+  })
+
+  it('机构名出现在正文里时不会被误切成新工作条目', () => {
+    const r = parseText(`张三
+工作经历
+2020.07 — 2023.02  星海科技有限公司｜开发工程师
+• 负责学院本科培养方案修订与课程评估。`).resume
+    expect(r.work).toHaveLength(1)
+    expect(r.work[0].highlights).toHaveLength(1)
+  })
+
+  it('同一行内的编号条目会按回车语义拆成多个要点', () => {
+    const r = parseText(`张三
+工作经历
+2020.07 — 2023.02  星海科技有限公司｜开发工程师
+• 1、负责终端运维 2、处理网络故障 3、整理操作手册`).resume
+    expect(r.work[0].highlights).toEqual(['负责终端运维', '处理网络故障', '整理操作手册'])
+  })
+
+  it('简介和段落中的换行会保留', () => {
+    const r = parseText(`张三
+个人简介
+第一行简介
+第二行简介
+自我评价
+第一行评价
+第二行评价`).resume
+    expect(r.basics.summary).toBe('第一行简介\n第二行简介')
+    expect(r.meta.customSections[0].text).toBe('第一行评价\n第二行评价')
   })
 })
 
@@ -206,6 +276,36 @@ describe('buildDoc 渲染', () => {
     r.meta.showSummary = false
     expect(buildDoc(r)).not.toContain('6 年 IT 运维与项目实施经验')
   })
+
+  it('英文模式只本地化固定栏目和日期，不翻译正文', () => {
+    const r = sampleResume()
+    r.meta.template = 'en'
+    r.meta.lang = 'en'
+    const html = buildDoc(r)
+    expect(html).toContain('Work Experience')
+    expect(html).toContain('Mar 2023 — Present')
+    expect(html).toContain('星澜数据科技')
+    expect(html).toContain('lang="en"')
+  })
+
+  it('只渲染本地图片数据，拒绝导入数据里的外部图片 URL', () => {
+    const r = sampleResume()
+    r.meta.template = 'zhao'
+    r.basics.image = 'https://tracker.example/avatar.jpg'
+    expect(buildDoc(r)).not.toContain('tracker.example')
+    r.basics.image = 'data:image/jpeg;base64,AAAA'
+    expect(buildDoc(r)).toContain('data:image/jpeg;base64,AAAA')
+  })
+
+  it('双栏模板把技能和教育放入侧栏，把经历放入主栏', () => {
+    const r = sampleResume()
+    r.meta.template = 'lan'
+    const html = buildDoc(r)
+    expect(html).toContain('class="doc-side"')
+    expect(html).toContain('class="doc-main"')
+    expect(html.indexOf('技能')).toBeLessThan(html.indexOf('class="doc-main"'))
+    expect(html.indexOf('工作经历')).toBeGreaterThan(html.indexOf('class="doc-main"'))
+  })
 })
 
 describe('自定义模块', () => {
@@ -273,31 +373,38 @@ describe('toJSONResume 导出兼容', () => {
 })
 
 describe('audit 体检打分', () => {
-  it('空洞简历分数低，并给出问题', () => {
+  it('只按可验证规则报告结构问题', () => {
     const r = blankResume()
     r.basics.name = '张三'
     r.work = [{ id: 'w', company: 'A', role: 'B', start: '', end: '', highlights: ['认真负责，团队协作能力强'] }]
     const res = audit(r)
-    expect(res.score).toBeLessThan(88)
-    expect(res.issues.length).toBeGreaterThan(0)
+    expect(res.issues.map(x => x.id)).toContain('contact')
+    expect(res.issues.map(x => x.id)).toContain('dates')
+    expect(res.passed).toBeLessThan(res.total)
   })
 
-  it('具体、带数字的简历分数高', () => {
-    const res = audit(sampleResume())
-    expect(res.score).toBeGreaterThanOrEqual(80)
-  })
-
-  it('抓出没有数字的要点', () => {
+  it('不把是否含数字当作真实性评分', () => {
     const r = sampleResume()
     r.work[0].highlights = ['负责日常运维工作', '处理各种故障']
-    const res = audit(r)
-    expect(res.issues.some(i => i.title.includes('没有任何数字'))).toBe(true)
+    const res = audit(sampleResume())
+    expect(audit(r).issues.some(i => i.id === 'numeric-density')).toBe(false)
+    expect(res.issues).toHaveLength(0)
   })
 
-  it('抓出百分比没有基数', () => {
+  it('抓出百分比缺少前后数值', () => {
     const r = sampleResume()
     r.work[0].highlights = ['设备故障率下降 20%']
     const res = audit(r)
-    expect(res.issues.some(i => i.title.includes('百分比没有基数'))).toBe(true)
+    expect(res.issues.some(i => i.id === 'percentage')).toBe(true)
+  })
+
+  it('抓出日期倒置、完全重复和未拆分编号', () => {
+    const r = sampleResume()
+    r.work[0].start = '2024.01'
+    r.work[0].end = '2023.01'
+    r.work[0].highlights = ['1、处理终端 2、处理网络']
+    r.work[1].highlights[0] = '1、处理终端 2、处理网络'
+    const res = audit(r)
+    expect(res.issues.map(x => x.id)).toEqual(expect.arrayContaining(['order', 'duplicates', 'numbered']))
   })
 })

@@ -1,7 +1,7 @@
 {
   "name": "paperstack",
   "private": true,
-  "version": "0.5.0",
+  "version": "0.7.0",
   "type": "module",
   "description": "离线运行、不上传数据的中文简历工具",
   "scripts": {
@@ -9,7 +9,10 @@
     "build": "vite build && node scripts/postbuild.mjs",
     "preview": "vite preview",
     "test": "vitest run",
-    "test:e2e": "vite build && playwright test"
+    "typecheck": "tsc --noEmit",
+    "test:e2e": "vite build && playwright test",
+    "demo:gif": "node scripts/build-demo-gif.mjs",
+    "fixtures:resumes": "node scripts/build-resume-corpus.mjs"
   },
   "dependencies": {
     "idb-keyval": "^6.2.1",

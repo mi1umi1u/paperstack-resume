@@ -3,10 +3,17 @@ import { computed, onMounted, ref } from 'vue'
 import type { Resume, WorkItem, ProjectItem, CustomEntry, CustomSection } from '../core/model'
 
 const props = defineProps<{ resume: Resume }>()
-const emit = defineEmits<{ (e: 'locate', key: string, id?: string): void; (e: 'add'): void }>()
+const emit = defineEmits<{
+  (e: 'locate', key: string, id?: string): void
+  (e: 'add'): void
+  (e: 'rename', key: string): void
+}>()
 
 const expanded = ref<Set<string>>(new Set())          // 默认全收起，只显示一级模块
-const width = ref(Number(localStorage.getItem('paperstack.outlineWidth')) || 232)
+const width = ref(232)
+try {
+  width.value = Number(localStorage.getItem('paperstack.outlineWidth')) || 232
+} catch { /* local storage may be disabled */ }
 
 function isOpen(key: string) { return expanded.value.has(key) }
 
@@ -29,7 +36,7 @@ function startResize(e: MouseEvent) {
   }
   const up = () => {
     resizing = false
-    localStorage.setItem('paperstack.outlineWidth', String(width.value))
+    try { localStorage.setItem('paperstack.outlineWidth', String(width.value)) } catch { /* ignore */ }
     window.removeEventListener('mousemove', move)
     window.removeEventListener('mouseup', up)
   }
@@ -98,12 +105,7 @@ const isCustom = (key: string) => !['work', 'projects', 'skills', 'education'].i
 
 /** 双击模块名改名 */
 function renameModule(key: string) {
-  const cur = titleOf(key)
-  const name = prompt('模块名称（留空则在简历里不显示标题）', cur)
-  if (name === null) return
-  const sec = sectionOf(key)
-  if (sec) sec.title = name
-  else props.resume.meta.titles[key] = name
+  emit('rename', key)
 }
 
 /** 删除自定义模块（内置模块只能隐藏） */
@@ -424,26 +426,28 @@ function onKey(e: KeyboardEvent, level: 1 | 2 | 3, moduleKey: string, index: num
 .outline {
   position: relative;
   display: flex; flex-direction: column;
-  border-right: 1px solid var(--line);
-  background: #F4F1EA;
+  border-right: 1px solid rgba(117,99,77,.13);
+  background:
+    linear-gradient(180deg,rgba(255,253,247,.58),rgba(239,233,222,.68)),
+    var(--panel);
   min-width: 0;
   min-height: 0;          /* 不加这行，网格子项会被内容撑高，内部滚动失效 */
   overflow: hidden;
 }
 .outline-head {
   display: flex; align-items: baseline; gap: 8px;
-  padding: 13px 13px 9px; border-bottom: 1px solid var(--line);
-  font-size: 12.5px; font-weight: 600; letter-spacing: .1em; color: var(--ink2);
+  margin: 12px 10px 4px;padding: 4px 4px 11px; border-bottom: 1px solid rgba(117,99,77,.14);
+  font-family:"Songti SC",STSong,SimSun,serif;font-size: 14px; font-weight: 600; letter-spacing: .12em; color: var(--ink2);
 }
 .outline-tip { font-size: 9.5px; color: var(--muted); letter-spacing: 0; font-weight: 400; margin-left: auto; }
-.outline-body { flex: 1; overflow-y: auto; padding: 6px 6px 16px; }
+.outline-body { flex: 1; overflow-y: auto; padding: 5px 8px 18px; }
 .row {
   display: flex; align-items: baseline; gap: 5px;
-  padding: 7px 7px; border-radius: 2px; cursor: pointer;
-  font-size: 13.5px; color: var(--ink2); line-height: 1.4;
+  padding: 8px 9px; border-radius: 10px; cursor: pointer;
+  font-size: 13px; color: var(--ink2); line-height: 1.4;
   border: 1px solid transparent;
 }
-.row:hover { background: rgba(255,255,255,.7); }
+.row:hover { background: rgba(255,253,247,.8); box-shadow:0 6px 18px -18px rgba(55,39,24,.5); }
 .row.module { font-weight: 600; margin-top: 6px; }
 .row.module.fixed { color: var(--muted); cursor: default; font-weight: 400; }
 .row.module.fixed:hover { background: transparent; }
@@ -461,7 +465,7 @@ function onKey(e: KeyboardEvent, level: 1 | 2 | 3, moduleKey: string, index: num
 .row.module .eye{margin-left:6px}
 .row.module.hidden .del{opacity:.4}
 .eye:hover { opacity: 1; }
-.row.item { padding-left: 20px; font-size: 12.5px; }
+.row.item { padding-left: 20px; font-size: 12.2px; }
 .dash { color: #C9C2B2; }
 .i-title { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1; min-width: 0; }
 .i-meta { color: var(--muted); font-size: 9.5px; margin-left: auto; white-space: nowrap; }
@@ -473,9 +477,9 @@ function onKey(e: KeyboardEvent, level: 1 | 2 | 3, moduleKey: string, index: num
 .dot { color: #C9C2B2; }
 .b-text { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .add-module {
-  width: calc(100% - 14px); margin: 12px 7px 0; padding: 9px;
-  border: 1px dashed var(--line); background: transparent; color: var(--muted);
-  font-family: var(--ui); font-size: 12.5px; cursor: pointer; border-radius: 2px;
+  width: calc(100% - 18px); margin: 14px 9px 0; padding: 10px;
+  border: 1px solid rgba(117,99,77,.18); background: rgba(255,253,247,.4); color: var(--muted);
+  font-family: var(--ui); font-size: 11.5px; cursor: pointer; border-radius: 999px;
 }
-.add-module:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+.add-module:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); transform:translateY(-1px); }
 </style>

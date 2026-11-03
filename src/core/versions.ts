@@ -26,6 +26,13 @@ export interface Library {
   currentId: string
 }
 
+export interface LibraryBackup {
+  format: 'paperstack-backup'
+  version: 1
+  exportedAt: string
+  library: Library
+}
+
 const LIB_KEY = 'paperstack.library.v1'
 export const MAX_SNAPSHOTS = 30
 
@@ -41,6 +48,45 @@ export function createLibrary(resume: Resume, name = '我的简历'): Library {
 
 export function currentVersion(lib: Library): Version | undefined {
   return lib.versions.find(v => v.id === lib.currentId) || lib.versions[0]
+}
+
+export function serializeLibrary(lib: Library): string {
+  const backup: LibraryBackup = {
+    format: 'paperstack-backup',
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    library: JSON.parse(JSON.stringify(lib))
+  }
+  return JSON.stringify(backup, null, 2)
+}
+
+export function deserializeLibrary(raw: string): Library | null {
+  try {
+    const data = JSON.parse(raw)
+    if (data?.format !== 'paperstack-backup' || data?.version !== 1 || !Array.isArray(data?.library?.versions)) return null
+    const versions: Version[] = data.library.versions.map((v: any) => ({
+      id: String(v.id || vid()),
+      name: String(v.name || '未命名版本'),
+      createdAt: Number(v.createdAt) || Date.now(),
+      updatedAt: Number(v.updatedAt) || Date.now(),
+      resume: normalize(v.resume),
+      snapshots: Array.isArray(v.snapshots)
+        ? v.snapshots.map((s: any) => ({
+          id: String(s.id || sid()),
+          name: String(s.name || '未命名快照'),
+          createdAt: Number(s.createdAt) || Date.now(),
+          resume: normalize(s.resume)
+        }))
+        : []
+    }))
+    if (!versions.length) return null
+    const currentId = versions.some(v => v.id === data.library.currentId)
+      ? data.library.currentId
+      : versions[0].id
+    return { versions, currentId }
+  } catch {
+    return null
+  }
 }
 
 export function addVersion(lib: Library, name: string, resume: Resume): Library {
@@ -68,12 +114,14 @@ export function updateVersion(lib: Library, id: string, resume: Resume): Library
 export function addSnapshot(lib: Library, versionId: string, name: string, resume: Resume): Library {
   const clean = name.trim()
   if (!clean) return lib
+  const version = lib.versions.find(v => v.id === versionId)
+  if (!version || version.snapshots.length >= MAX_SNAPSHOTS) return lib
   const snap: Snapshot = { id: sid(), name: clean, createdAt: Date.now(), resume: normalize(resume) }
   return {
     ...lib,
     versions: lib.versions.map(v =>
       v.id === versionId
-        ? { ...v, snapshots: [...v.snapshots, snap].slice(-MAX_SNAPSHOTS), updatedAt: Date.now() }
+        ? { ...v, snapshots: [...v.snapshots, snap], updatedAt: Date.now() }
         : v
     )
   }
@@ -152,19 +200,37 @@ export async function loadLibrary(): Promise<Library | null> {
 
 /** 清空全部版本、快照与旧版单份简历数据，回到首次使用状态 */
 export async function clearLibraryData(): Promise<void> {
+  cancelLibrarySave()
   await del(LIB_KEY).catch(() => undefined)
   await del('paperstack.resume.v2').catch(() => undefined)
   try { localStorage.removeItem('paperstack.resume.v1') } catch { /* ignore */ }
 }
 
 export function saveLibrary(lib: Library, delay = 300): void {
+  pendingLibrary = JSON.parse(JSON.stringify(lib))
   clearTimeout(saveTimer)
   saveTimer = window.setTimeout(() => {
-    set(LIB_KEY, JSON.parse(JSON.stringify(lib))).catch(() => undefined)
+    void flushLibrary()
   }, delay)
 }
 
+export function flushLibrary(): Promise<void> {
+  clearTimeout(saveTimer)
+  saveTimer = undefined
+  const library = pendingLibrary
+  pendingLibrary = null
+  if (!library) return Promise.resolve()
+  return set(LIB_KEY, JSON.parse(JSON.stringify(library))).catch(() => undefined)
+}
+
+export function cancelLibrarySave(): void {
+  clearTimeout(saveTimer)
+  saveTimer = undefined
+  pendingLibrary = null
+}
+
 let saveTimer: any
+let pendingLibrary: Library | null = null
 
 const timeout = <T>(p: Promise<T>, ms: number): Promise<T | null> =>
   Promise.race([p.catch(() => null), new Promise<null>(res => setTimeout(() => res(null), ms))])

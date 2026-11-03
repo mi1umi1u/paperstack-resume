@@ -44,3 +44,18 @@ test('恢复快照生成新副本，原版本保留', async ({ page }) => {
   const resume = await page.evaluate(() => (window as any).__ps.resume())
   expect(resume.basics.name).toBe('原内容')
 })
+
+test('快照可以明确删除，并显示数量上限', async ({ page }) => {
+  await page.goto(FIRST_USE_URL)
+  await page.getByRole('button', { name: /^从零创建/ }).click()
+  await page.getByRole('button', { name: '快照', exact: true }).click()
+  await expect(page.locator('.snap-count')).toHaveText('0 / 30')
+  await page.locator('.snapshot-modal input').fill('可删除快照')
+  await page.getByRole('button', { name: '保存快照' }).click()
+  await expect(page.locator('.snap-item')).toHaveCount(1)
+
+  page.once('dialog', dialog => dialog.accept())
+  await page.getByRole('button', { name: '删除', exact: true }).click()
+  await expect(page.locator('.snap-item')).toHaveCount(0)
+  await expect(page.locator('.snap-count')).toHaveText('0 / 30')
+})

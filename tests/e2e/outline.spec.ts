@@ -176,14 +176,15 @@ test('双击模块名可以改名（技能 / 个人优势也一样）', async ({
   })
   await page.waitForTimeout(300)
 
-  page.once('dialog', d => d.accept('核心技能'))
   await page.locator('[data-module="skills"] .m-title').dblclick()
-  await page.waitForTimeout(200)
+  const rename = page.getByRole('dialog', { name: '修改模块名称' })
+  await rename.getByLabel(/模块名称/).fill('核心技能')
+  await rename.getByRole('button', { name: '确定' }).click()
   await expect(page.locator('[data-module="skills"] .m-title')).toHaveText('核心技能')
 
-  page.once('dialog', d => d.accept('我的优势'))
   await page.locator('[data-module="sec1"] .m-title').dblclick()
-  await page.waitForTimeout(200)
+  await rename.getByLabel(/模块名称/).fill('我的优势')
+  await rename.getByRole('button', { name: '确定' }).click()
   await expect(page.locator('[data-module="sec1"] .m-title')).toHaveText('我的优势')
 })
 
