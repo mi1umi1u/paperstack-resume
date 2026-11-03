@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { ref } from 'vue'
 import type { Resume, FontId, DensityId, PageTarget, ResumeLang, TemplateId } from '../core/model'
 import { ACCENTS } from '../core/model'
 import { TEMPLATES } from '../templates'
@@ -11,35 +11,6 @@ const props = defineProps<{ resume: Resume; fit: FitReport | null }>()
 const photoInput = ref<HTMLInputElement | null>(null)
 const pendingPhoto = ref('')
 const photoError = ref('')
-const designWidth = ref(276)
-
-try {
-  const saved = Number(localStorage.getItem('paperstack.designWidth'))
-  if (saved) designWidth.value = Math.max(240, Math.min(560, saved))
-} catch { /* local storage may be disabled */ }
-
-onMounted(() => {
-  document.documentElement.style.setProperty('--design-w', `${designWidth.value}px`)
-})
-
-function startResize(e: MouseEvent) {
-  e.preventDefault()
-  let resizing = true
-  const move = (event: MouseEvent) => {
-    if (!resizing) return
-    designWidth.value = Math.max(240, Math.min(560, Math.round(event.clientX)))
-    document.documentElement.style.setProperty('--design-w', `${designWidth.value}px`)
-  }
-  const up = () => {
-    resizing = false
-    try { localStorage.setItem('paperstack.designWidth', String(designWidth.value)) } catch { /* ignore */ }
-    window.removeEventListener('mousemove', move)
-    window.removeEventListener('mouseup', up)
-  }
-  window.addEventListener('mousemove', move)
-  window.addEventListener('mouseup', up)
-}
-
 function applyTemplate(id: TemplateId) {
   props.resume.meta.template = id
   const template = TEMPLATES.find(t => t.id === id)
@@ -76,7 +47,6 @@ function savePhoto(value: string) {
 
 <template>
   <aside class="editor design-panel">
-    <div class="design-resizer" title="拖动调整设计面板宽度" @mousedown="startResize" />
     <section v-if="fit" class="design-section fit-report">
       <div class="design-title">分页状态</div>
       <div class="fit-line"><b>{{ fit.pages }}</b> 页{{ fit.compressed ? '（已压缩）' : '' }}</div>
@@ -154,10 +124,6 @@ function savePhoto(value: string) {
 
 <style scoped>
 .design-panel{padding-top:22px;position:relative}
-.design-resizer{position:absolute;top:0;right:0;width:9px;height:100%;cursor:col-resize;z-index:8}
-.design-resizer::after{content:"";position:absolute;top:18%;bottom:18%;right:1px;width:2px;border-radius:999px;
-  background:transparent;transition:background .15s}
-.design-resizer:hover::after{background:rgba(159,63,48,.34)}
 .design-section{padding-bottom:22px;margin-bottom:20px;border-bottom:1px solid var(--line-soft)}
 .design-section:last-child{border-bottom:0}
 .design-title{font-size:12px;font-weight:600;color:var(--ink);margin-bottom:11px;letter-spacing:.08em}
@@ -175,6 +141,4 @@ function savePhoto(value: string) {
 .photo-remove:hover{color:var(--accent)}
 .photo-error{margin:9px 0 0;color:var(--accent);font-size:10.5px}
 .photo-input{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
-@media(max-width:900px){.design-resizer{display:none}}
-
 </style>

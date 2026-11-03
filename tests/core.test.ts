@@ -57,6 +57,20 @@ describe('normalize 结构归一化', () => {
     expect(r.skills).toEqual(['Go'])
   })
 
+  it('从旧项目角色和自定义时间中迁移开始、结束月份', () => {
+    const r = normalize({
+      projects: [{ name: '项目', description: '现场实施 · 2022.03—2022.11', highlights: [] }],
+      meta: {
+        customSections: [{
+          id: 'c', title: '培训', type: 'entry', list: [], text: '',
+          entries: [{ id: 'e', title: '培训', subtitle: '学员', time: '2023.07—2023.09', bullets: [] }]
+        }]
+      }
+    })
+    expect(r.projects[0]).toMatchObject({ role: '现场实施', start: '2022.03', end: '2022.11' })
+    expect(r.meta.customSections[0].entries[0]).toMatchObject({ start: '2023.07', end: '2023.09' })
+  })
+
   it('补上语言字段，并兼容旧版英文模板数据', () => {
     expect(normalize({}).meta.lang).toBe('zh')
     expect(normalize({ meta: { template: 'en' } }).meta.lang).toBe('en')
@@ -286,6 +300,19 @@ describe('buildDoc 渲染', () => {
     expect(html).toContain('Mar 2023 — Present')
     expect(html).toContain('星澜数据科技')
     expect(html).toContain('lang="en"')
+  })
+
+  it('月份选择器保存的日期按简历格式显示', () => {
+    const r = sampleResume()
+    r.work[0].start = '2024-02'
+    r.work[0].end = '2025-03'
+    r.projects[0].start = '2022-03'
+    r.projects[0].end = '2022-11'
+    const zh = buildDoc(r)
+    expect(zh).toContain('2024.02 — 2025.03')
+    expect(zh).toContain('2022.03 — 2022.11')
+    r.meta.lang = 'en'
+    expect(buildDoc(r)).toContain('Feb 2024 — Mar 2025')
   })
 
   it('只渲染本地图片数据，拒绝导入数据里的外部图片 URL', () => {

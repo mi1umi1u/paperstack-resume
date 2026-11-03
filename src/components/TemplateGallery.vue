@@ -4,7 +4,7 @@ import { sampleResume, type Resume, type TemplateId } from '../core/model'
 import { buildDoc } from '../render/doc'
 import { TEMPLATES, type TemplateDef } from '../templates'
 
-defineProps<{ resume: Resume }>()
+const props = defineProps<{ resume: Resume }>()
 const emit = defineEmits<{ (e: 'apply', id: TemplateId): void }>()
 
 const filter = ref<'all' | 'single' | 'double' | 'photo' | 'en'>('all')
@@ -41,6 +41,15 @@ function applyPreview() {
 
 const previewTemplate = computed(() => TEMPLATES.find(t => t.id === previewId.value) || null)
 const previewHtml = computed(() => previewTemplate.value ? thumbFor(previewTemplate.value) : '')
+const paperStyle = computed(() => ({
+  '--dc': props.resume.meta.accent,
+  '--doc-f': props.resume.meta.font === 'song'
+    ? '"Times New Roman","Songti SC","STSong","SimSun",serif'
+    : props.resume.meta.font === 'hei'
+      ? '"Arial","SimHei","Heiti SC","STHeiti",sans-serif'
+      : '"Arial","PingFang SC","Microsoft YaHei","Hiragino Sans GB",sans-serif',
+  '--doc-lh': props.resume.meta.font === 'song' ? 1.66 : props.resume.meta.font === 'hei' ? 1.58 : 1.54
+}))
 </script>
 
 <template>
@@ -57,7 +66,7 @@ const previewHtml = computed(() => previewTemplate.value ? thumbFor(previewTempl
     <div class="gallery-grid">
       <div v-for="t in list" :key="t.id" class="tpl-card" :class="{ on: selected === t.id }" :data-template="t.id"
         role="button" tabindex="0" @click="selected = t.id" @keydown.enter="selected = t.id">
-        <span class="tpl-thumb" v-html="thumbFor(t)" />
+        <span class="tpl-thumb" :style="paperStyle" v-html="thumbFor(t)" />
         <span class="tpl-info">
           <span class="tpl-name">{{ t.name }}</span>
           <span class="tpl-meta">{{ metaLabel(t) }}</span>
@@ -84,7 +93,7 @@ const previewHtml = computed(() => previewTemplate.value ? thumbFor(previewTempl
           <button type="button" aria-label="关闭模板预览" @click="previewId = null">×</button>
         </div>
         <div class="gallery-preview-stage">
-          <div class="gallery-preview-sheet" v-html="previewHtml" />
+          <div class="gallery-preview-sheet" :style="paperStyle" v-html="previewHtml" />
         </div>
         <div class="gallery-preview-foot">
           <span class="gallery-preview-hint">拖动设计面板右边缘，可以调整模板列表宽度。</span>
@@ -106,8 +115,8 @@ const previewHtml = computed(() => previewTemplate.value ? thumbFor(previewTempl
 .tpl-card{display:flex;gap:10px;padding:10px;border:1px solid var(--line-soft);background:transparent;text-align:left;cursor:pointer;border-radius:4px;align-items:flex-start}
 .tpl-card:hover{border-color:var(--accent)}
 .tpl-card.on{border-color:var(--accent);background:#FFFDF8}
-.tpl-thumb{width:120px;height:150px;overflow:hidden;flex:none;background:#fff;border:1px solid var(--line-soft);display:block;pointer-events:none}
-.tpl-thumb :deep(.doc){transform:scale(.15);transform-origin:top left;width:794px}
+.tpl-thumb{width:102px;height:144px;overflow:hidden;flex:none;background:#fff;border:1px solid var(--line-soft);display:block;pointer-events:none}
+.tpl-thumb :deep(.doc){transform:scale(.126);transform-origin:top left;width:794px}
 .tpl-thumb :deep(.doc), .tpl-thumb :deep(.doc-double .doc-side), .tpl-thumb :deep(.doc-double .doc-main){height:1123px}
 .tpl-info{display:flex;flex-direction:column;gap:4px;padding-top:2px;min-width:0}
 .tpl-name{font-size:15px;font-weight:600;color:var(--ink)}

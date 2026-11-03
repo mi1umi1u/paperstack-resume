@@ -96,13 +96,13 @@ test('确认页能改日期字段', async ({ page }) => {
   await page.locator('.pane-head .btn.tiny').click()
   await page.waitForTimeout(200)
 
-  const inputs = page.locator('.pane.right .entry-line input')
-  await inputs.nth(1).fill('2021.05')
+  await page.getByLabel('工作开始年份').selectOption('2021')
+  await page.getByLabel('工作开始月份').selectOption('05')
   await page.locator('.btn.primary', { hasText: '导入为新版本' }).click()
   await page.waitForTimeout(400)
 
   const r = await page.evaluate(() => (window as any).__ps.resume())
-  expect(r.work[0].start).toBe('2021.05')
+  expect(r.work[0].start).toBe('2021-05')
 })
 
 test('公开来源重建的 PDF 夹具可通过文件选择导入', async ({ page }) => {

@@ -32,6 +32,8 @@
 
 ![模板大图预览](docs/screenshots/gallery-preview.png)
 
+![共享左侧栏收起状态](docs/screenshots/sidebar-collapsed.png)
+
 ![DeepSeek JD 覆盖分析](docs/screenshots/deepseek-jd.png)
 
 ![可验证规则的简历体检](docs/screenshots/audit.png)
@@ -52,9 +54,9 @@
 pnpm install
 pnpm dev        # 开发服务器
 pnpm build      # 产出 dist/index.html，并复制为根目录 纸栈.html
-pnpm test       # 单元测试：77 条
+pnpm test       # 单元测试：79 条
 pnpm typecheck  # TypeScript 静态检查
-pnpm test:e2e   # 端到端测试：102 条，自动先构建
+pnpm test:e2e   # 端到端测试：108 条，自动先构建
 ```
 
 没有 pnpm 时，可使用 `npm run dev`、`npm run build`、`npm test`、`npm run test:e2e`。
@@ -107,7 +109,7 @@ src/
 | R21 命名快照 | ✅ 创建、持久化、比较、恢复为新副本 |
 | R22–R24 AI 审阅、JD 覆盖与脱敏 | ✅ DeepSeek、逐条审阅、风险提醒、发送前载荷确认 |
 | R14 发布材料 | ✅ README、截图、MIT 协议、Pages 工作流 |
-| R15 自动化测试 | ✅ 77 条单元测试 + 102 条端到端测试 |
+| R15 自动化测试 | ✅ 79 条单元测试 + 108 条端到端测试 |
 
 ## 后续顺序
 

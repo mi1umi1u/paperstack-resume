@@ -30,6 +30,8 @@ const resume = reactive<Resume>(sampleResume())
 const wrap = ref<HTMLElement | null>(null)
 const pages = ref(1)
 const zoom = ref(0.82)
+const sideWidth = ref(232)
+const sideCollapsed = ref(false)
 const importing = ref(false)
 const showStart = ref(false)
 const mode = ref<'edit' | 'design' | 'audit'>('edit')
@@ -71,6 +73,41 @@ const histories = new Map<string, ReturnType<typeof createHistory>>()
 const histVer = ref(0)          // 变化时刷新按钮可用状态
 let applying = false            // 撤销/重做期间不回写历史
 let histTimer: number | undefined
+
+try {
+  const savedWidth = Number(localStorage.getItem('paperstack.sideWidth'))
+  if (savedWidth) sideWidth.value = Math.max(220, Math.min(560, savedWidth))
+  sideCollapsed.value = localStorage.getItem('paperstack.sideCollapsed') === '1'
+} catch { /* local storage may be disabled */ }
+
+const sideStyle = computed(() => ({
+  '--side-width': sideCollapsed.value ? '0px' : `${sideWidth.value}px`
+}))
+
+function toggleSide() {
+  sideCollapsed.value = !sideCollapsed.value
+  try { localStorage.setItem('paperstack.sideCollapsed', sideCollapsed.value ? '1' : '0') } catch { /* ignore */ }
+  nextTick(() => fitZoom())
+}
+
+function startSideResize(e: MouseEvent) {
+  e.preventDefault()
+  let resizing = true
+  const move = (event: MouseEvent) => {
+    if (!resizing) return
+    sideWidth.value = Math.max(220, Math.min(560, Math.round(event.clientX)))
+    document.documentElement.style.setProperty('--side-width', `${sideWidth.value}px`)
+  }
+  const up = () => {
+    resizing = false
+    try { localStorage.setItem('paperstack.sideWidth', String(sideWidth.value)) } catch { /* ignore */ }
+    window.removeEventListener('mousemove', move)
+    window.removeEventListener('mouseup', up)
+    fitZoom()
+  }
+  window.addEventListener('mousemove', move)
+  window.addEventListener('mouseup', up)
+}
 
 function askText(options: Omit<PromptRequest, 'resolve'>): Promise<string | null> {
   return new Promise(resolve => {
@@ -272,6 +309,7 @@ function openEditorTarget(t: Target) {
   holder.innerHTML = html
   holder.classList.add('if-editing')
   editingSheet?.classList.add('if-sheet')
+  editingSheet?.classList.toggle('if-side-editing', !!holder.closest('.doc-double > .doc-side'))
   nextTick(() => {
     const first = holder.querySelector('input, textarea') as HTMLInputElement | null
     first?.focus()
@@ -287,7 +325,7 @@ function finishInline() {
     editingActor.innerHTML = editingBackup
     editingActor = null
   }
-  editingSheet?.classList.remove('if-sheet')
+  editingSheet?.classList.remove('if-sheet', 'if-side-editing')
   editingSheet = null
   editingBackup = ''
   editTarget.value = null
@@ -329,12 +367,57 @@ function pruneEmptyCreatedTarget() {
 }
 
 /** 原地表单里的输入：直接改状态，不重排 */
+function dateFieldValue(k: string, f: string): string {
+  const [kind, a, b] = k.split(':')
+  if (kind === 'work') return String((resume.work.find(x => x.id === a) as any)?.[f] || '')
+  if (kind === 'projects') return String((resume.projects.find(x => x.id === a) as any)?.[f] || '')
+  if (kind === 'education') return String((resume.education.find(x => x.id === a) as any)?.[f] || '')
+  if (kind === 'entry') {
+    const sec = (resume.meta.customSections || []).find(s => s.id === a)
+    return String((sec?.entries.find(x => x.id === b) as any)?.[f] || '')
+  }
+  return ''
+}
+
+function setDateFieldValue(k: string, f: string, value: string) {
+  const [kind, a, b] = k.split(':')
+  if (kind === 'work') {
+    const item = resume.work.find(x => x.id === a)
+    if (item) (item as any)[f] = value
+  } else if (kind === 'projects') {
+    const item = resume.projects.find(x => x.id === a)
+    if (item) (item as any)[f] = value
+  } else if (kind === 'education') {
+    const item = resume.education.find(x => x.id === a)
+    if (item) (item as any)[f] = value
+  } else if (kind === 'entry') {
+    const sec = (resume.meta.customSections || []).find(s => s.id === a)
+    const item = sec?.entries.find(x => x.id === b)
+    if (item) (item as any)[f] = value
+  }
+}
+
 function onWrapInput(e: Event) {
   if (!editingActive) return
   const el = e.target as HTMLInputElement | HTMLTextAreaElement
   const k = el.dataset.k, f = el.dataset.f
   if (!k || !f) return
   const v = el.value
+  if (el.dataset.datePart) {
+    const current = dateFieldValue(k, f)
+    const match = current.match(/^((?:19|20)\d{2})(?:[./年-]\s*(\d{1,2}))?$/)
+    let year = match?.[1] || ''
+    let month = match?.[2] ? match[2].padStart(2, '0') : ''
+    const group = el.closest('.if-month-select')
+    const other = group?.querySelector(`[data-date-part="${el.dataset.datePart === 'year' ? 'month' : 'year'}"]`) as HTMLSelectElement | null
+    if (el.dataset.datePart === 'year') year = v
+    else month = v
+    if (!year && other) year = other.value
+    if (!month && other) month = other.value
+    if (month && !year) year = String(new Date().getFullYear())
+    setDateFieldValue(k, f, year && month ? `${year}-${month}` : year || '')
+    return
+  }
   const [kind, a, b] = k.split(':')
 
   if (kind === 'basics') { (resume.basics as any)[f] = v; return }
@@ -1055,7 +1138,15 @@ async function renameModule(key: string) {
     </div>
   </header>
 
-  <main class="workspace" :class="[`mode-${mode}`, { 'panel-open': panelOpen }]">
+  <main class="workspace" :class="[`mode-${mode}`, { 'panel-open': panelOpen, 'side-collapsed': sideCollapsed }]"
+    :style="sideStyle">
+    <button class="side-collapse-toggle" type="button"
+      :aria-label="sideCollapsed ? '展开左侧面板' : '收起左侧面板'"
+      :title="sideCollapsed ? '展开左侧面板' : '收起左侧面板'" @click="toggleSide">
+      {{ sideCollapsed ? '›' : '‹' }}
+    </button>
+    <div v-if="!sideCollapsed" class="outline-resizer side-resizer" title="拖动调整左侧面板宽度"
+      @mousedown="startSideResize" />
     <OutlinePanel v-if="mode === 'edit'" :resume="resume" @locate="locate" @add="showAddMenu = true" @rename="renameModule" />
     <DesignPanel v-else-if="mode === 'design'" :resume="resume" :fit="fit" />
     <AuditPanel v-else :resume="resume" @locate="onAuditLocate" />

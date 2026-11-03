@@ -30,7 +30,7 @@ test('设计面板右边缘可以拖拽调宽', async ({ page }) => {
   await page.getByRole('button', { name: '设计', exact: true }).click()
   const panel = page.locator('.design-panel')
   const before = await panel.boundingBox()
-  const handle = await page.locator('.design-resizer').boundingBox()
+  const handle = await page.locator('.side-resizer').boundingBox()
   expect(before).toBeTruthy()
   expect(handle).toBeTruthy()
 
@@ -42,6 +42,29 @@ test('设计面板右边缘可以拖拽调宽', async ({ page }) => {
 
   const after = await panel.boundingBox()
   expect(after!.width).toBeGreaterThan(before!.width + 120)
+})
+
+test('编辑、设计和体检共用左侧栏宽度与折叠状态', async ({ page }) => {
+  const workspace = page.locator('.workspace')
+  const outline = page.locator('.outline')
+  const editWidth = (await outline.boundingBox())!.width
+
+  await page.getByRole('button', { name: '收起左侧面板' }).click()
+  await expect(workspace).toHaveClass(/side-collapsed/)
+  await expect(page.getByRole('button', { name: '展开左侧面板' })).toBeVisible()
+
+  await page.getByRole('button', { name: '设计', exact: true }).click()
+  await expect(workspace).toHaveClass(/side-collapsed/)
+  await expect(page.locator('.design-panel')).toHaveCount(1)
+  await page.getByRole('button', { name: '展开左侧面板' }).click()
+  await page.waitForTimeout(260)
+  const designWidth = (await page.locator('.design-panel').boundingBox())!.width
+  expect(Math.abs(designWidth - editWidth)).toBeLessThan(2)
+
+  await page.getByRole('button', { name: '收起左侧面板' }).click()
+  await page.getByRole('button', { name: '体检', exact: true }).click()
+  await expect(workspace).toHaveClass(/side-collapsed/)
+  await expect(page.getByRole('button', { name: '展开左侧面板' })).toBeVisible()
 })
 
 test('体检模式显示可验证规则和问题清单', async ({ page }) => {

@@ -31,6 +31,8 @@ export interface ProjectItem {
   id: string
   name: string
   role: string
+  start?: string
+  end?: string
   highlights: string[]
   pb?: boolean
   keep?: boolean
@@ -52,6 +54,8 @@ export interface CustomEntry {
   title: string        // 主标题，如"XX 实习"
   subtitle: string     // 副标题，如岗位/颁发机构
   time: string
+  start?: string
+  end?: string
   bullets: string[]
 }
 
@@ -183,7 +187,9 @@ export function sampleResume(): Resume {
     {
       id: uid('p'),
       name: '120 家连锁门店网络改造项目',
-      role: '现场实施 · 2022.03—2022.11',
+      role: '现场实施',
+      start: '2022.03',
+      end: '2022.11',
       highlights: [
         '负责门店侧现场勘测、布线、AP 与交换机安装调试，单店交付周期从 3 天压到 1.5 天。',
         '整理出《门店实施检查表》共 26 项，交付验收一次通过率从 78% 提升到 96%。'

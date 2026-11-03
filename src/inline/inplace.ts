@@ -10,6 +10,29 @@ const fld = (label: string, k: string, f: string, value: string, extra = '') =>
 const area = (k: string, f: string, value: string, i?: number) =>
   `<textarea class="if-area" data-k="${k}" data-f="${f}"${i !== undefined ? ` data-i="${i}"` : ''} rows="1">${esc(value)}</textarea>`
 
+const dateParts = (value: string): [string, string] => {
+  const match = String(value || '').match(/^((?:19|20)\d{2})(?:[./年-]\s*(\d{1,2}))?$/)
+  return match ? [match[1], match[2] ? match[2].padStart(2, '0') : ''] : ['', '']
+}
+
+const dateField = (label: string, k: string, f: string, value: string) => {
+  const [year, month] = dateParts(value)
+  const currentYear = new Date().getFullYear()
+  const years = Array.from({ length: currentYear + 6 - 1960 + 1 }, (_, i) => String(currentYear + 6 - i))
+  if (year && !years.includes(year)) years.unshift(year)
+  return `<label class="if-field"><span>${label}</span>
+    <div class="if-month-select">
+      <select data-k="${k}" data-f="${f}" data-date-part="year" aria-label="${label}年份">
+        <option value="">年</option>${years.map(v => `<option value="${v}"${v === year ? ' selected' : ''}>${v}年</option>`).join('')}
+      </select>
+      <select data-k="${k}" data-f="${f}" data-date-part="month" aria-label="${label}月份">
+        <option value="">月</option>${Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, '0'))
+          .map(v => `<option value="${v}"${v === month ? ' selected' : ''}>${Number(v)}月</option>`).join('')}
+      </select>
+    </div>
+  </label>`
+}
+
 const bulletRows = (k: string, arr: string[]) =>
   `<div class="if-bullets">${arr
     .map((t, i) => `<div class="if-bullet"><span>·</span>${area(k, 'bullet', t, i)}<button class="if-x" data-act="del" data-k="${k}" data-i="${i}">×</button></div>`)
@@ -54,8 +77,8 @@ export function formHTML(t: Target, r: Resume): string {
       <div class="if-grid">
         ${fld('公司', k, 'company', w.company)}
         ${fld('职位', k, 'role', w.role)}
-        ${fld('开始', k, 'start', w.start, 'placeholder="2023.03"')}
-        ${fld('结束', k, 'end', w.end, 'placeholder="至今"')}
+        ${dateField('开始月份', k, 'start', w.start)}
+        ${dateField('结束月份', k, 'end', w.end)}
       </div>
       <div class="if-label">要点</div>
       ${bulletRows(k, w.highlights)}
@@ -70,7 +93,9 @@ export function formHTML(t: Target, r: Resume): string {
     return `<div class="if-form">
       <div class="if-grid">
         ${fld('项目名', k, 'name', p.name)}
-        ${fld('角色 / 时间', k, 'role', p.role)}
+        ${fld('角色', k, 'role', p.role)}
+        ${dateField('开始月份', k, 'start', p.start || '')}
+        ${dateField('结束月份', k, 'end', p.end || '')}
       </div>
       <div class="if-label">要点</div>
       ${bulletRows(k, p.highlights)}
@@ -87,8 +112,8 @@ export function formHTML(t: Target, r: Resume): string {
         ${fld('学校', k, 'institution', e.institution)}
         ${fld('学历', k, 'studyType', e.studyType)}
         ${fld('专业', k, 'area', e.area)}
-        ${fld('开始', k, 'start', e.start)}
-        ${fld('结束', k, 'end', e.end)}
+        ${dateField('开始月份', k, 'start', e.start)}
+        ${dateField('结束月份', k, 'end', e.end)}
       </div>
       ${done}
     </div>`
@@ -103,7 +128,8 @@ export function formHTML(t: Target, r: Resume): string {
       <div class="if-grid">
         ${fld('标题', k, 'title', e.title)}
         ${fld('副标题', k, 'subtitle', e.subtitle)}
-        ${fld('时间', k, 'time', e.time)}
+        ${dateField('开始月份', k, 'start', e.start || '')}
+        ${dateField('结束月份', k, 'end', e.end || '')}
       </div>
       <div class="if-label">要点</div>
       ${bulletRows(k, e.bullets)}

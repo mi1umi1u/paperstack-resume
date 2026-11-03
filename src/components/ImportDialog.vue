@@ -26,6 +26,24 @@ const customSections = computed(() =>
   (result.value?.resume.meta.customSections || []).filter(s => s.type === 'text' && s.text.trim())
 )
 
+const dateParts = (value: string): [string, string] => {
+  const match = String(value || '').match(/^((?:19|20)\d{2})(?:[./年-]\s*(\d{1,2}))?$/)
+  return match ? [match[1], match[2] ? match[2].padStart(2, '0') : ''] : ['', '']
+}
+
+const currentYear = new Date().getFullYear()
+const yearOptions = Array.from({ length: currentYear + 6 - 1960 + 1 }, (_, i) => String(currentYear + 6 - i))
+
+function setDatePart(target: any, field: string, part: 'year' | 'month', event: Event) {
+  const [currentYearValue, currentMonth] = dateParts(target[field] || '')
+  let year = currentYearValue
+  let month = currentMonth
+  if (part === 'year') year = (event.target as HTMLSelectElement).value
+  else month = (event.target as HTMLSelectElement).value
+  if (month && !year) year = String(currentYear)
+  target[field] = year && month ? `${year}-${month}` : year || ''
+}
+
 async function onFile(e: Event) {
   const f = (e.target as HTMLInputElement).files?.[0]
   if (!f) return
@@ -111,8 +129,22 @@ function confirmApply() {
                 <input v-model="w.company" class="entry-input" placeholder="公司名" />
                 <div class="entry-line">
                   <input v-model="w.role" class="entry-input small" placeholder="职位" />
-                  <input v-model="w.start" class="entry-input tiny" placeholder="开始" />
-                  <input v-model="w.end" class="entry-input tiny" placeholder="结束" />
+                  <div class="date-selects">
+                    <select :value="dateParts(w.start)[0]" aria-label="工作开始年份" @change="setDatePart(w, 'start', 'year', $event)">
+                      <option value="">年</option><option v-for="year in yearOptions" :key="year" :value="year">{{ year }}年</option>
+                    </select>
+                    <select :value="dateParts(w.start)[1]" aria-label="工作开始月份" @change="setDatePart(w, 'start', 'month', $event)">
+                      <option value="">月</option><option v-for="month in 12" :key="month" :value="String(month).padStart(2, '0')">{{ month }}月</option>
+                    </select>
+                  </div>
+                  <div class="date-selects">
+                    <select :value="dateParts(w.end)[0]" aria-label="工作结束年份" @change="setDatePart(w, 'end', 'year', $event)">
+                      <option value="">年</option><option v-for="year in yearOptions" :key="year" :value="year">{{ year }}年</option>
+                    </select>
+                    <select :value="dateParts(w.end)[1]" aria-label="工作结束月份" @change="setDatePart(w, 'end', 'month', $event)">
+                      <option value="">月</option><option v-for="month in 12" :key="month" :value="String(month).padStart(2, '0')">{{ month }}月</option>
+                    </select>
+                  </div>
                 </div>
                 <div class="entry-bullets">{{ w.highlights.filter(Boolean).length }} 条要点</div>
               </div>
@@ -122,7 +154,25 @@ function confirmApply() {
               <div class="block-title">项目经历 <i>{{ projects.length }}</i></div>
               <div v-for="(p, i) in projects" :key="i" class="entry">
                 <input v-model="p.name" class="entry-input" placeholder="项目名" />
-                <input v-model="p.role" class="entry-input small" placeholder="角色 / 时间" />
+                <div class="entry-line">
+                  <input v-model="p.role" class="entry-input small" placeholder="角色" />
+                  <div class="date-selects">
+                    <select :value="dateParts(p.start || '')[0]" aria-label="项目开始年份" @change="setDatePart(p, 'start', 'year', $event)">
+                      <option value="">年</option><option v-for="year in yearOptions" :key="year" :value="year">{{ year }}年</option>
+                    </select>
+                    <select :value="dateParts(p.start || '')[1]" aria-label="项目开始月份" @change="setDatePart(p, 'start', 'month', $event)">
+                      <option value="">月</option><option v-for="month in 12" :key="month" :value="String(month).padStart(2, '0')">{{ month }}月</option>
+                    </select>
+                  </div>
+                  <div class="date-selects">
+                    <select :value="dateParts(p.end || '')[0]" aria-label="项目结束年份" @change="setDatePart(p, 'end', 'year', $event)">
+                      <option value="">年</option><option v-for="year in yearOptions" :key="year" :value="year">{{ year }}年</option>
+                    </select>
+                    <select :value="dateParts(p.end || '')[1]" aria-label="项目结束月份" @change="setDatePart(p, 'end', 'month', $event)">
+                      <option value="">月</option><option v-for="month in 12" :key="month" :value="String(month).padStart(2, '0')">{{ month }}月</option>
+                    </select>
+                  </div>
+                </div>
                 <div class="entry-bullets">{{ p.highlights.filter(Boolean).length }} 条要点</div>
               </div>
             </div>
@@ -134,8 +184,22 @@ function confirmApply() {
                 <div class="entry-line">
                   <input v-model="e.area" class="entry-input small" placeholder="专业" />
                   <input v-model="e.studyType" class="entry-input tiny" placeholder="学历" />
-                  <input v-model="e.start" class="entry-input tiny" placeholder="开始" />
-                  <input v-model="e.end" class="entry-input tiny" placeholder="结束" />
+                  <div class="date-selects">
+                    <select :value="dateParts(e.start)[0]" aria-label="教育开始年份" @change="setDatePart(e, 'start', 'year', $event)">
+                      <option value="">年</option><option v-for="year in yearOptions" :key="year" :value="year">{{ year }}年</option>
+                    </select>
+                    <select :value="dateParts(e.start)[1]" aria-label="教育开始月份" @change="setDatePart(e, 'start', 'month', $event)">
+                      <option value="">月</option><option v-for="month in 12" :key="month" :value="String(month).padStart(2, '0')">{{ month }}月</option>
+                    </select>
+                  </div>
+                  <div class="date-selects">
+                    <select :value="dateParts(e.end)[0]" aria-label="教育结束年份" @change="setDatePart(e, 'end', 'year', $event)">
+                      <option value="">年</option><option v-for="year in yearOptions" :key="year" :value="year">{{ year }}年</option>
+                    </select>
+                    <select :value="dateParts(e.end)[1]" aria-label="教育结束月份" @change="setDatePart(e, 'end', 'month', $event)">
+                      <option value="">月</option><option v-for="month in 12" :key="month" :value="String(month).padStart(2, '0')">{{ month }}月</option>
+                    </select>
+                  </div>
                 </div>
               </div>
             </div>
@@ -208,8 +272,12 @@ function confirmApply() {
 .entry-input.small{font-size:11.5px;font-weight:400;color:var(--ink2)}
 .entry-input.tiny{font-size:11px;width:5.2em;color:var(--muted)}
 .entry-input:focus{outline:none;border-bottom-color:var(--accent);background:#FFFDF9}
-.entry-line{display:flex;gap:8px;align-items:center}
+.entry-line{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .entry-line .small{flex:1}
+.date-selects{display:grid;grid-template-columns:5.2em 3.7em;gap:3px;flex:none}
+.date-selects select{min-width:0;border:1px solid var(--line);border-radius:3px;background:#FFFDF9;
+  color:var(--ink2);font:11px var(--ui);padding:3px 2px}
+.date-selects select:focus{outline:none;border-color:var(--accent);background:#fff}
 .entry-title{font-size:12.5px;color:var(--ink);font-weight:500}
 .entry-meta{font-size:11px;color:var(--muted);margin-top:2px}
 .entry-bullets{font-size:10.5px;color:var(--muted);margin-top:3px}

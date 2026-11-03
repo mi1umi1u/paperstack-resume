@@ -22,6 +22,13 @@ const EN_MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep'
 
 function formatDate(value: string, lang: ResumeLang): string {
   const text = String(value || '').trim()
+  const dashMonth = text.match(/^(\d{4})-(\d{1,2})$/)
+  if (dashMonth) {
+    const month = Number(dashMonth[2])
+    if (month >= 1 && month <= 12) {
+      return lang === 'en' ? `${EN_MONTHS[month - 1]} ${dashMonth[1]}` : `${dashMonth[1]}.${String(month).padStart(2, '0')}`
+    }
+  }
   if (lang !== 'en') return text
   if (text === '至今' || text.toLowerCase() === 'present') return 'Present'
   const month = text.match(/^(\d{4})\s*[年./-]\s*(\d{1,2})(?:月)?$/)
@@ -86,7 +93,7 @@ function sectionHtml(r: Resume, key: string): string {
       const list = custom.entries.filter(e => e.title || e.subtitle || e.bullets.some(Boolean))
       if (!list.length) return `<section class="sec" data-key="${esc(key)}">${head}<div class="sec-body">${empty}</div></section>`
       body = list.map(e => `<div class="item" data-id="${esc(e.id)}">
-        <div class="item-head"><span class="dates">${esc(formatRangeText(e.time || '', r.meta.lang))}</span>
+        <div class="item-head"><span class="dates">${esc(fmt(e.start || '', e.end || '', r.meta.lang) || formatRangeText(e.time || '', r.meta.lang))}</span>
         <span class="org">${esc(e.title || '')}</span>
         <span class="sub">${esc(e.subtitle || '')}</span></div>
         ${bullets(e.bullets)}</div>`).join('')
@@ -114,7 +121,7 @@ function sectionHtml(r: Resume, key: string): string {
   } else if (key === 'projects') {
     if (!r.projects.length) return emptySection(head, key)
     body = r.projects.map(p => `<div class="item" data-id="${esc(p.id)}"${p.pb ? ' data-pb="1"' : ''}${p.keep ? ' data-keep="1"' : ''}>
-        <div class="item-head"><span class="dates"></span>
+        <div class="item-head"><span class="dates">${esc(fmt(p.start || '', p.end || '', r.meta.lang))}</span>
         <span class="org">${esc(p.name || '—')}</span>
         <span class="sub">${esc(p.role || '')}</span></div>
         ${bullets(p.highlights)}</div>`).join('')
@@ -203,7 +210,8 @@ export function toJSONResume(r: Resume) {
       highlights: w.highlights.filter(Boolean)
     })),
     projects: r.projects.map(p => ({
-      name: p.name, description: p.role, highlights: p.highlights.filter(Boolean)
+      name: p.name, description: p.role, startDate: p.start, endDate: p.end,
+      highlights: p.highlights.filter(Boolean)
     })),
     skills: r.skills.filter(Boolean).map(name => ({ name })),
     education: r.education.map(e => ({

@@ -4,6 +4,21 @@ import { blankResume, uid, DEFAULT_TITLES, type Resume, type CustomSection, type
 const IDB_KEY = 'paperstack.resume.v2'
 const LS_KEY = 'paperstack.resume.v1'   // v0.3 的 localStorage 键，用于迁移
 
+function splitDateRange(value: string): { start: string; end: string; rest: string } {
+  const text = String(value || '').trim()
+  const range = text.match(/((?:19|20)\d{2}(?:[./年-]\s*\d{1,2})?)\s*[—–~～至到-]+\s*((?:19|20)\d{2}(?:[./年-]\s*\d{1,2})?|至今|现在|今)/)
+  if (range) {
+    const cleaned = text.replace(range[0], '').replace(/^[\s·|｜,，]+|[\s·|｜,，]+$/g, '')
+    return { start: range[1], end: range[2], rest: cleaned }
+  }
+  const single = text.match(/((?:19|20)\d{2}(?:[./年-]\s*\d{1,2})?)/)
+  if (single) {
+    const cleaned = text.replace(single[0], '').replace(/^[\s·|｜,，]+|[\s·|｜,，]+$/g, '')
+    return { start: single[1], end: '', rest: cleaned }
+  }
+  return { start: '', end: '', rest: text }
+}
+
 /** 任意来源的数据 → 合法 Resume（缺字段补默认，脏数据丢弃） */
 export function normalize(input: any): Resume {
   const base = blankResume()
@@ -34,14 +49,20 @@ export function normalize(input: any): Resume {
     keep: !!w.keep
   }))
 
-  base.projects = (Array.isArray(d.projects) ? d.projects : []).map((p: any) => ({
-    id: p.id || uid('p'),
-    name: p.name || '',
-    role: p.role || p.description || '',
-    highlights: Array.isArray(p.highlights) ? p.highlights.slice() : [],
-    pb: !!p.pb,
-    keep: !!p.keep
-  }))
+  base.projects = (Array.isArray(d.projects) ? d.projects : []).map((p: any) => {
+    const role = p.role || p.description || ''
+    const parsed = splitDateRange(role)
+    return {
+      id: p.id || uid('p'),
+      name: p.name || '',
+      role: !p.start && !p.startDate && parsed.start ? parsed.rest : role,
+      start: p.start || p.startDate || parsed.start,
+      end: p.end || p.endDate || parsed.end,
+      highlights: Array.isArray(p.highlights) ? p.highlights.slice() : [],
+      pb: !!p.pb,
+      keep: !!p.keep
+    }
+  })
 
   base.skills = (Array.isArray(d.skills) ? d.skills : [])
     .map((s: any) => (typeof s === 'string' ? s : s && s.name) || '')
@@ -66,6 +87,8 @@ export function normalize(input: any): Resume {
       title: en.title || '',
       subtitle: en.subtitle || '',
       time: en.time || '',
+      start: en.start || splitDateRange(en.time || '').start,
+      end: en.end || splitDateRange(en.time || '').end,
       bullets: Array.isArray(en.bullets) ? en.bullets : []
     })),
     list: Array.isArray(sec.list) ? sec.list : [],

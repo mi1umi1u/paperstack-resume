@@ -99,6 +99,47 @@ test('双栏侧栏放不下时明确提示，不静默裁掉内容', async ({ pa
   await expect(page.locator('.fit-warning')).toContainText('侧栏内容超出第一页')
 })
 
+test('双栏侧栏内容编辑时展开为整页宽，结束后恢复双栏预览', async ({ page }) => {
+  await openApp(page)
+  const data = makeResume({ jobs: 1, bullets: 1 })
+
+  for (const template of ['lan', 'lanq']) {
+    await setContent(page, { ...data, meta: { ...data.meta, template, lang: 'zh' } })
+    await page.locator('#app .sheet .doc-side [data-key="education"] .org').click()
+
+    const sheet = page.locator('#app .sheet')
+    await expect(sheet).toHaveClass(/if-side-editing/)
+    await expect(sheet.locator('.doc-main')).toBeHidden()
+    await expect(sheet.locator('.doc-side .if-form')).toBeVisible()
+    await expect(sheet.locator('.doc-side .if-month-select')).toHaveCount(2)
+
+    const layout = await sheet.evaluate(el => {
+      const side = el.querySelector('.doc-side') as HTMLElement
+      const form = el.querySelector('.doc-side .if-form') as HTMLElement
+      const formBox = form.getBoundingClientRect()
+      const selectors = Array.from(form.querySelectorAll('.if-month-select select')) as HTMLElement[]
+      return {
+        formWidth: formBox.width,
+        sideWidth: side.getBoundingClientRect().width,
+        formOverflow: form.scrollWidth > form.clientWidth + 1,
+        selectorsInside: selectors.every(select => {
+          const box = select.getBoundingClientRect()
+          return box.left >= formBox.left - 1 && box.right <= formBox.right + 1
+        })
+      }
+    })
+    expect(layout.formWidth).toBeGreaterThan(layout.sideWidth * 0.8)
+    expect(layout.formOverflow).toBe(false)
+    expect(layout.selectorsInside).toBe(true)
+
+    await page.locator('.if-done').click()
+    await page.waitForTimeout(200)
+    await expect(sheet).not.toHaveClass(/if-side-editing/)
+    await expect(sheet.locator('.doc-main')).toBeVisible()
+    await expect(sheet.locator('.doc-side')).toBeVisible()
+  }
+})
+
 test('打印模式保留双栏底色，并隐藏无照片占位框', async ({ page }) => {
   await openApp(page)
   const data = makeResume({ jobs: 1, bullets: 1 })

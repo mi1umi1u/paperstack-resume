@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, ref } from 'vue'
 import type { Resume, WorkItem, ProjectItem, CustomEntry, CustomSection } from '../core/model'
 
 const props = defineProps<{ resume: Resume }>()
@@ -10,10 +10,6 @@ const emit = defineEmits<{
 }>()
 
 const expanded = ref<Set<string>>(new Set())          // 默认全收起，只显示一级模块
-const width = ref(232)
-try {
-  width.value = Number(localStorage.getItem('paperstack.outlineWidth')) || 232
-} catch { /* local storage may be disabled */ }
 
 function isOpen(key: string) { return expanded.value.has(key) }
 
@@ -22,31 +18,6 @@ function toggleExpand(key: string) {
   s.has(key) ? s.delete(key) : s.add(key)
   expanded.value = s
 }
-
-/** 拖右边缘改宽 */
-let resizing = false
-function startResize(e: MouseEvent) {
-  e.preventDefault()
-  resizing = true
-  const move = (ev: MouseEvent) => {
-    if (!resizing) return
-    const w = Math.max(160, Math.min(460, ev.clientX))
-    width.value = Math.round(w)
-    document.documentElement.style.setProperty('--outline-w', width.value + 'px')
-  }
-  const up = () => {
-    resizing = false
-    try { localStorage.setItem('paperstack.outlineWidth', String(width.value)) } catch { /* ignore */ }
-    window.removeEventListener('mousemove', move)
-    window.removeEventListener('mouseup', up)
-  }
-  window.addEventListener('mousemove', move)
-  window.addEventListener('mouseup', up)
-}
-
-onMounted(() => {
-  document.documentElement.style.setProperty('--outline-w', width.value + 'px')
-})
 
 /** 删掉一条空要点 */
 function removeBullet(key: string, item: any, bi: number) {
@@ -358,8 +329,7 @@ function onKey(e: KeyboardEvent, level: 1 | 2 | 3, moduleKey: string, index: num
 </script>
 
 <template>
-  <aside class="outline" :style="{ width: width + 'px' }">
-    <div class="outline-resizer" title="拖动调整宽度" @mousedown="startResize" />
+  <aside class="outline">
     <div class="outline-head">
       <span>结构大纲</span>
       <span class="outline-tip">拖动任意一行排序</span>
@@ -421,8 +391,6 @@ function onKey(e: KeyboardEvent, level: 1 | 2 | 3, moduleKey: string, index: num
 </template>
 
 <style scoped>
-.outline-resizer{position:absolute;top:0;right:-3px;width:7px;height:100%;cursor:col-resize;z-index:5}
-.outline-resizer:hover{background:rgba(166,58,43,.16)}
 .outline {
   position: relative;
   display: flex; flex-direction: column;

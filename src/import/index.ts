@@ -314,7 +314,14 @@ export function parseText(raw: string): ParseResult {
       r.work.push({ id: uid('w'), company: e.title, role: e.meta, start: e.start || '', end: e.end || '', highlights: e.bullets.filter(Boolean) })
     } else if (e.kind === 'projects') {
       if (!e.title.trim()) return
-      r.projects.push({ id: uid('p'), name: e.title, role: e.meta, highlights: e.bullets.filter(Boolean) })
+      r.projects.push({
+        id: uid('p'),
+        name: e.title,
+        role: e.meta,
+        start: e.start || '',
+        end: e.end || '',
+        highlights: e.bullets.filter(Boolean)
+      })
     } else {
       if (!e.title.trim() && !e.meta.trim()) return
       const meta = e.meta || ''

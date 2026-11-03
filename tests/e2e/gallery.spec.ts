@@ -48,3 +48,21 @@ test('模板可放大预览，再从预览确认选择', async ({ page }) => {
   await dialog.getByRole('button', { name: '应用这套模板' }).click()
   expect(await page.evaluate(() => (window as any).__ps.resume().meta.template)).toBe('zhou')
 })
+
+test('双栏模板画廊完整显示彩色侧栏和主栏内容', async ({ page }) => {
+  await openApp(page)
+  await page.getByRole('button', { name: '设计', exact: true }).click()
+  const card = page.locator('.tpl-card[data-template="lan"]')
+  await card.scrollIntoViewIfNeeded()
+
+  const thumbSide = card.locator('.doc-side')
+  await expect(thumbSide).toContainText('陈 一鸣')
+  expect(await thumbSide.evaluate(el => getComputedStyle(el).backgroundColor)).not.toBe('rgba(0, 0, 0, 0)')
+
+  await card.getByRole('button', { name: '查看大图' }).click()
+  const dialog = page.getByRole('dialog', { name: '栏模板预览' })
+  await expect(dialog.locator('.doc-side')).toContainText('陈 一鸣')
+  await expect(dialog.locator('.doc-side')).toContainText('技能')
+  await expect(dialog.locator('.doc-main')).toContainText('工作经历')
+  expect(await dialog.locator('.doc-side').evaluate(el => getComputedStyle(el).backgroundColor)).not.toBe('rgba(0, 0, 0, 0)')
+})
