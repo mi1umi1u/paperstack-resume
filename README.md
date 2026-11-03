@@ -2,7 +2,7 @@
 
 离线运行、不上传任何数据的中文简历工具：导入旧简历、自动拆分、套模板、智能分页、一键导出 PDF。
 
-> 当前版本 **v0.7.0**。P1–P6 功能和真实 DeepSeek 联调已完成；发布前 QA 发现的编辑状态、保存与备份问题已修复，真实复杂 PDF 仍在最后验收。
+> 当前版本 **v0.7.0**。P1–P6 功能和真实 DeepSeek 联调已完成；发布前 QA 发现的编辑状态、保存与备份问题已修复。在线试用：[mi1umi1u.github.io/paperstack-resume](https://mi1umi1u.github.io/paperstack-resume/)
 
 ## 特点
 
@@ -41,6 +41,8 @@
 **双击根目录的 `纸栈.html`**（构建时自动生成）。
 
 ⚠️ 不要双击 `index.html`——那是 Vite 的开发入口，`file://` 下会白屏。
+
+也可以直接访问 [GitHub Pages 在线版](https://mi1umi1u.github.io/paperstack-resume/)。在线版仍然只在浏览器本地处理数据。
 
 ## 开发
 
