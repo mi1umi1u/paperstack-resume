@@ -70,25 +70,28 @@ const previewHtml = computed(() => previewTemplate.value ? thumbFor(previewTempl
     </div>
   </div>
 
-  <div v-if="previewTemplate" class="gallery-preview-mask" role="dialog" aria-modal="true"
-    :aria-label="`${previewTemplate.name}模板预览`" @click.self="previewId = null">
-    <div class="gallery-preview-card">
-      <div class="gallery-preview-head">
-        <div>
-          <b>{{ previewTemplate.name }}</b>
-          <span>{{ metaLabel(previewTemplate) }} · {{ previewTemplate.desc }}</span>
+  <Teleport to="body">
+    <div v-if="previewTemplate" class="gallery-preview-mask" role="dialog" aria-modal="true"
+      :aria-label="`${previewTemplate.name}模板预览`" @click.self="previewId = null">
+      <div class="gallery-preview-card">
+        <div class="gallery-preview-head">
+          <div>
+            <b>{{ previewTemplate.name }}</b>
+            <span>{{ metaLabel(previewTemplate) }} · {{ previewTemplate.desc }}</span>
+          </div>
+          <button type="button" aria-label="关闭模板预览" @click="previewId = null">×</button>
         </div>
-        <button type="button" aria-label="关闭模板预览" @click="previewId = null">×</button>
-      </div>
-      <div class="gallery-preview-stage">
-        <div class="gallery-preview-sheet" v-html="previewHtml" />
-      </div>
-      <div class="gallery-preview-foot">
-        <button class="btn" type="button" @click="previewId = null">返回</button>
-        <button class="btn primary" type="button" @click="selected = previewTemplate.id; previewId = null">选择这套</button>
+        <div class="gallery-preview-stage">
+          <div class="gallery-preview-sheet" v-html="previewHtml" />
+        </div>
+        <div class="gallery-preview-foot">
+          <span class="gallery-preview-hint">拖动设计面板右边缘，可以调整模板列表宽度。</span>
+          <button class="btn" type="button" @click="previewId = null">返回</button>
+          <button class="btn primary" type="button" @click="selected = previewTemplate.id; previewId = null">选择这套</button>
+        </div>
       </div>
     </div>
-  </div>
+  </Teleport>
 </template>
 
 <style scoped>
@@ -113,17 +116,26 @@ const previewHtml = computed(() => previewTemplate.value ? thumbFor(previewTempl
 .gallery-foot{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:12px;padding-top:12px;border-top:1px solid var(--line-soft)}
 .gallery-hint{font-size:10.5px;color:var(--muted);line-height:1.6;max-width:190px}
 .gallery-empty{font-size:12px;color:var(--muted);padding:20px 0}
-.gallery-preview-mask{position:fixed;inset:0;z-index:210;background:rgba(30,26,20,.48);
+.gallery-preview-mask{position:fixed;inset:0;z-index:210;background:rgba(30,26,20,.5);backdrop-filter:blur(5px);
   display:flex;align-items:center;justify-content:center;padding:20px}
-.gallery-preview-card{width:min(470px,100%);max-height:92vh;background:var(--paper);display:flex;flex-direction:column;
-  box-shadow:0 30px 80px -40px rgba(0,0,0,.65)}
+.gallery-preview-card{width:min(920px,100%);max-height:92vh;background:var(--paper);display:flex;flex-direction:column;
+  border:1px solid rgba(117,99,77,.18);border-radius:20px;overflow:hidden;box-shadow:0 34px 90px -36px rgba(0,0,0,.65)}
 .gallery-preview-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding:15px 18px;border-bottom:1px solid var(--line)}
 .gallery-preview-head div{display:flex;flex-direction:column;gap:4px}
 .gallery-preview-head b{font-family:var(--kai);font-size:18px;font-weight:400;letter-spacing:.12em}
 .gallery-preview-head span{font-size:10.5px;color:var(--muted)}
 .gallery-preview-head button{border:0;background:transparent;font-size:22px;line-height:1;color:var(--muted);cursor:pointer}
-.gallery-preview-stage{overflow:auto;padding:18px;background:#E9E5DC;display:flex;justify-content:center}
-.gallery-preview-sheet{width:397px;height:562px;flex:none;background:#fff;overflow:hidden;box-shadow:0 12px 30px -18px rgba(0,0,0,.5)}
-.gallery-preview-sheet :deep(.doc){transform:scale(.5);transform-origin:top left;width:794px;height:1123px;min-height:1123px;padding:56px 60px;background:#fff}
-.gallery-preview-foot{display:flex;justify-content:flex-end;gap:8px;padding:12px 18px 16px;border-top:1px solid var(--line)}
+.gallery-preview-stage{overflow:auto;padding:24px 28px;background:
+  linear-gradient(135deg,rgba(255,255,255,.38),transparent 40%),#E9E5DC;display:flex;justify-content:center}
+.gallery-preview-sheet{width:477px;height:674px;flex:none;background:#fff;overflow:hidden;
+  box-shadow:0 18px 40px -22px rgba(0,0,0,.5)}
+.gallery-preview-sheet :deep(.doc){transform:scale(.6);transform-origin:top left;width:794px;height:1123px;min-height:1123px;padding:56px 60px;background:#fff}
+.gallery-preview-foot{display:flex;align-items:center;justify-content:flex-end;gap:8px;padding:12px 18px 16px;border-top:1px solid var(--line)}
+.gallery-preview-hint{margin-right:auto;font-size:9.5px;color:var(--muted)}
+@media(max-width:620px){
+  .gallery-preview-mask{padding:10px}
+  .gallery-preview-card{max-height:96vh}
+  .gallery-preview-stage{padding:14px}
+  .gallery-preview-hint{display:none}
+}
 </style>

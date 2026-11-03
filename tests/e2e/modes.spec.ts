@@ -25,6 +25,24 @@ test('设计模式保留预览，可修改模板并切回编辑模式', async ({
   expect(await page.evaluate(() => (window as any).__ps.resume().meta.template)).toBe('mi')
 })
 
+test('设计面板右边缘可以拖拽调宽', async ({ page }) => {
+  await page.getByRole('button', { name: '设计', exact: true }).click()
+  const panel = page.locator('.design-panel')
+  const before = await panel.boundingBox()
+  const handle = await page.locator('.design-resizer').boundingBox()
+  expect(before).toBeTruthy()
+  expect(handle).toBeTruthy()
+
+  await page.mouse.move(handle!.x + handle!.width / 2, handle!.y + 120)
+  await page.mouse.down()
+  await page.mouse.move(510, handle!.y + 120, { steps: 8 })
+  await page.mouse.up()
+  await page.waitForTimeout(150)
+
+  const after = await panel.boundingBox()
+  expect(after!.width).toBeGreaterThan(before!.width + 120)
+})
+
 test('体检模式显示可验证规则和问题清单', async ({ page }) => {
   const base = await page.evaluate(() => (window as any).__ps.resume())
   await setContent(page, { ...base, work: base.work.map((w: any, i: number) => i === 0 ? { ...w, end: '' } : w) })

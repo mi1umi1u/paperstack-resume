@@ -66,7 +66,7 @@ body{
 .action-cluster .btn.primary:hover{background:#8F3023}
 
 .workspace{display:grid;grid-template-columns:var(--outline-w,232px) minmax(0,1fr);height:calc(100vh - 70px)}
-.workspace.mode-design{grid-template-columns:276px minmax(0,1fr)}
+.workspace.mode-design{grid-template-columns:var(--design-w,276px) minmax(0,1fr)}
 .editor{overflow-y:auto;overflow-x:hidden;background:rgba(246,242,233,.82);border-right:1px solid rgba(117,99,77,.13);
   padding:20px 20px 80px;min-width:0;min-height:0;backdrop-filter:blur(10px)}
 .stage{overflow-y:auto;overflow-x:hidden;padding:0 0 60px;min-width:0;min-height:0}
@@ -245,7 +245,7 @@ body{
   .brand,.mode-switch,.acts,.ver{flex:none}
   .spacer{flex:none;width:4px}
   .workspace{grid-template-columns:var(--outline-w,190px) minmax(0,1fr)}
-  .workspace.mode-design{grid-template-columns:250px minmax(0,1fr)}
+  .workspace.mode-design{grid-template-columns:var(--design-w,250px) minmax(0,1fr)}
 }
 @media (max-width:1500px){
   .top-actions .btn{font-size:10.5px;padding-left:7px;padding-right:7px}

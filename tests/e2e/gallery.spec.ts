@@ -39,6 +39,10 @@ test('模板可放大预览，再从预览确认选择', async ({ page }) => {
   const dialog = page.getByRole('dialog', { name: '轴模板预览' })
   await expect(dialog).toBeVisible()
   await expect(dialog.locator('.gallery-preview-sheet .doc-zhou')).toBeVisible()
+  const cardBox = await dialog.boundingBox()
+  const viewport = page.viewportSize()!
+  expect(cardBox).toBeTruthy()
+  expect(Math.abs((cardBox!.x + cardBox!.width / 2) - viewport.width / 2)).toBeLessThan(8)
   await dialog.getByRole('button', { name: '选择这套' }).click()
   await page.getByRole('button', { name: '应用此模板' }).click()
   expect(await page.evaluate(() => (window as any).__ps.resume().meta.template)).toBe('zhou')
