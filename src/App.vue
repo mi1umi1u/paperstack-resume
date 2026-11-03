@@ -1024,8 +1024,17 @@ async function renameModule(key: string) {
       <button class="btn" title="新建简历" @click="openStart">＋</button>
       <button class="btn" title="重命名当前版本" @click="renameCurrent">✎</button>
       <button class="btn" title="删除当前版本" @click="deleteCurrent">✕</button>
-      <button class="btn" title="快照" @click="openSnapshot">快照</button>
-      <button class="btn" title="清空全部数据" @click="clearAllData">清空数据</button>
+      <button class="btn icon-action" type="button" title="快照" aria-label="快照" @click="openSnapshot">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <rect x="6" y="5" width="13" height="15" rx="2" />
+          <path d="M9 2h9a3 3 0 0 1 3 3v12M9.5 10h6M9.5 14h4.5" />
+        </svg>
+      </button>
+      <button class="btn icon-action" type="button" title="清空数据" aria-label="清空数据" @click="clearAllData">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M4 7h16M9 7V4h6v3M7 7l1 13h8l1-13M10 11v5M14 11v5" />
+        </svg>
+      </button>
     </div>
     <div class="spacer" />
     <div class="top-actions">
